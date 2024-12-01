@@ -1,48 +1,52 @@
-import React, { useState, KeyboardEvent, ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { TreeVisualization } from './components/TreeVisualization';
 import { BinarySearchTree } from './trees/BinarySearchTree';
-import { BaseTree } from './trees/BaseTree';
-import { TreeType, Operation, AnimationStep } from './types';
+import { TreeData, AnimationStep } from './types';
 
 const AppContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-height: 100vh;
   padding: 20px;
-  background: #f8f9fa;
-  box-sizing: border-box;
-  overflow: hidden;
   gap: 20px;
+  background: #f8f9fa;
 `;
 
-const ControlPanel = styled.div`
-  display: flex;
-  gap: 20px;
+const Header = styled.header`
   padding: 20px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  align-items: center;
-  z-index: 10;
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
 `;
 
-const Select = styled.select`
-  padding: 8px 12px;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  font-size: 14px;
-  background: white;
-  cursor: pointer;
-  outline: none;
+const Title = styled.h1`
+  margin: 0;
+  font-size: 24px;
+  color: #1a1a1a;
+`;
 
-  &:focus {
-    border-color: #2196f3;
-    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+const ControlPanel = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+const ControlGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
   }
 `;
 
@@ -51,277 +55,274 @@ const Input = styled.input`
   border: 1px solid #dee2e6;
   border-radius: 6px;
   font-size: 14px;
-  outline: none;
   width: 120px;
-
+  transition: all 0.2s;
+  
   &:focus {
-    border-color: #2196f3;
-    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+    outline: none;
+    border-color: #4dabf7;
+    box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    flex: 1;
   }
 `;
 
-const Button = styled.button`
+interface ButtonProps {
+  variant?: 'primary' | 'danger' | 'secondary' | 'success';
+}
+
+const Button = styled.button<ButtonProps>`
   padding: 8px 16px;
-  background: #2196f3;
-  color: white;
   border: none;
   border-radius: 6px;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  background: ${(props: ButtonProps) => {
+    switch (props.variant) {
+      case 'danger': return '#fa5252';
+      case 'secondary': return '#868e96';
+      case 'success': return '#40c057';
+      default: return '#4dabf7';
+    }
+  }};
+  color: white;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
   &:hover {
-    background: #1976d2;
+    background: ${(props: ButtonProps) => {
+      switch (props.variant) {
+        case 'danger': return '#e03131';
+        case 'secondary': return '#495057';
+        case 'success': return '#37b24d';
+        default: return '#339af0';
+      }
+    }};
   }
 
-  &:active {
-    background: #1565c0;
+  &:disabled {
+    background: #adb5bd;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    flex: 1;
+    justify-content: center;
   }
 `;
 
-const VisualizationArea = styled.div`
+const Divider = styled.div`
+  width: 1px;
+  height: 24px;
+  background: #dee2e6;
+  margin: 0 8px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 1px;
+    margin: 8px 0;
+  }
+`;
+
+const VisualizationContainer = styled.div`
   flex: 1;
-  min-height: 0;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  position: relative;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 10px;
-`;
-
-const ActionButton = styled(Button)`
-  &.clear {
-    background: #dc3545;
-    &:hover {
-      background: #c82333;
-    }
-  }
-
-  &.undo {
-    background: #6c757d;
-    &:hover {
-      background: #5a6268;
-    }
-    &:disabled {
-      background: #adb5bd;
-      cursor: not-allowed;
-    }
-  }
-`;
-
-const SpeedControl = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 20px;
-  border-left: 1px solid #dee2e6;
-`;
-
-const SpeedSlider = styled.input`
-  width: 100px;
-`;
-
-const SpeedLabel = styled.span`
-  font-size: 14px;
-  color: #6c757d;
+  position: relative;
 `;
 
 interface TreeState {
-  tree: BaseTree<any>;
-  treeData: any;
+  tree: BinarySearchTree;
+  data: TreeData;
   animations: AnimationStep[];
 }
 
-interface TreeOperation {
-  type: Operation;
-  value?: number;
-}
-
 const App: React.FC = () => {
-  const [selectedTree, setSelectedTree] = useState<TreeType>('BST');
-  const [operation, setOperation] = useState<Operation>('INSERT');
-  const [inputValue, setInputValue] = useState<string>('');
-  
-  // Keep track of tree states for undo
-  const [treeHistory, setTreeHistory] = useState<TreeState[]>([{
+  const [inputValue, setInputValue] = useState('');
+  const [history, setHistory] = useState<TreeState[]>([{
     tree: new BinarySearchTree(),
-    treeData: new BinarySearchTree().getTreeData(),
+    data: new BinarySearchTree().getTreeData(),
     animations: []
   }]);
-  const [currentStateIndex, setCurrentStateIndex] = useState<number>(0);
-  
-  // Keep track of operations for history
-  const [operationHistory, setOperationHistory] = useState<TreeOperation[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [searchResult, setSearchResult] = useState<number | null>(null);
 
-  const [animationSpeed, setAnimationSpeed] = useState<number>(500); // Default speed in ms
+  const currentTree = history[currentIndex].tree;
+  const currentData = history[currentIndex].data;
 
-  // Get current tree state
-  const currentTree = treeHistory[currentStateIndex].tree;
-  const currentTreeData = treeHistory[currentStateIndex].treeData;
+  const addToHistory = (newTree: TreeState) => {
+    const newHistory = history.slice(0, currentIndex + 1);
+    newHistory.push(newTree);
+    setHistory(newHistory);
+    setCurrentIndex(currentIndex + 1);
+  };
 
-  const executeOperation = () => {
+  const handleInsert = () => {
     const value = parseInt(inputValue);
-    if (isNaN(value)) {
-      alert('Please enter a valid number');
-      return;
-    }
+    if (isNaN(value)) return;
 
-    let animations: AnimationStep[] = [];
     const newTree = currentTree.clone();
+    newTree.insert(value);
+    addToHistory({
+      tree: newTree,
+      data: newTree.getTreeData(),
+      animations: []
+    });
+    setInputValue('');
+    setSearchResult(null);
+  };
 
-    switch (operation) {
-      case 'INSERT':
-        animations = newTree.insert(value);
-        break;
-      case 'DELETE':
-        animations = newTree.delete(value);
-        break;
-      case 'SEARCH':
-        animations = newTree.search(value);
-        break;
-    }
+  const handleDelete = () => {
+    const value = parseInt(inputValue);
+    if (isNaN(value)) return;
 
-    // Add new state to history with animations
-    const newTreeData = newTree.getTreeData();
-    const newHistory = treeHistory.slice(0, currentStateIndex + 1);
-    newHistory.push({ 
-      tree: newTree, 
-      treeData: newTreeData,
+    const newTree = currentTree.clone();
+    newTree.delete(value);
+    addToHistory({
+      tree: newTree,
+      data: newTree.getTreeData(),
+      animations: []
+    });
+    setInputValue('');
+    setSearchResult(null);
+  };
+
+  const handleSearch = () => {
+    const value = parseInt(inputValue);
+    if (isNaN(value)) return;
+
+    const animations = currentTree.search(value);
+    setSearchResult(value);
+    setInputValue('');
+    
+    addToHistory({
+      tree: currentTree.clone(),
+      data: currentTree.getTreeData(),
       animations
     });
-    
-    setTreeHistory(newHistory);
-    setCurrentStateIndex(currentStateIndex + 1);
-    setOperationHistory([...operationHistory, { type: operation, value }]);
-    setInputValue('');
   };
 
   const handleClear = () => {
     const newTree = new BinarySearchTree();
-    const newTreeData = newTree.getTreeData();
+    const animations = newTree.clear();
     
-    const newHistory = [...treeHistory, { 
-      tree: newTree, 
-      treeData: newTreeData,
-      animations: []
-    }];
+    addToHistory({
+      tree: newTree,
+      data: { nodes: [], links: [] },
+      animations: [{
+        type: 'clear',
+        nodes: currentData.nodes,
+        message: 'Clearing all nodes from the tree'
+      }]
+    });
     
-    setTreeHistory(newHistory);
-    setCurrentStateIndex(newHistory.length - 1);
-    setOperationHistory([...operationHistory, { type: 'CLEAR' }]);
+    setSearchResult(null);
   };
 
   const handleUndo = () => {
-    if (currentStateIndex > 0) {
-      setCurrentStateIndex(currentStateIndex - 1);
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setSearchResult(null);
     }
   };
 
-  const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      executeOperation();
+  const handleRedo = () => {
+    if (currentIndex < history.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setSearchResult(null);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numbers and empty string
     const value = e.target.value;
     if (value === '' || /^-?\d+$/.test(value)) {
       setInputValue(value);
     }
   };
 
-  const handleSelectTreeChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTree(e.target.value as TreeType);
-  };
-
-  const handleOperationChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setOperation(e.target.value as Operation);
-  };
-
-  const handleSpeedChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newSpeed = 1000 - parseInt(e.target.value); // Invert the value so higher = faster
-    setAnimationSpeed(newSpeed);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleInsert();
+    }
   };
 
   return (
     <AppContainer>
+      <Header>
+        <Title>Binary Search Tree Visualization</Title>
+      </Header>
+
       <ControlPanel>
-        <Select
-          value={selectedTree}
-          onChange={handleSelectTreeChange}
-        >
-          <option value="BST">Binary Search Tree</option>
-          <option value="AVL">AVL Tree</option>
-          <option value="RED_BLACK">Red-Black Tree</option>
-          <option value="B_TREE">B-Tree</option>
-          <option value="B_PLUS_TREE">B+ Tree</option>
-        </Select>
-        
-        <Select
-          value={operation}
-          onChange={handleOperationChange}
-        >
-          <option value="INSERT">Insert</option>
-          <option value="DELETE">Delete</option>
-          <option value="SEARCH">Search</option>
-        </Select>
-        
-        <Input
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          placeholder="Enter a number"
-        />
-        
-        <ButtonGroup>
-          <Button onClick={executeOperation}>
-            {operation}
+        <ControlGroup>
+          <Input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            placeholder="Enter a number"
+          />
+          <Button onClick={handleInsert}>
+            Insert
           </Button>
-          <ActionButton 
-            className="undo"
+          <Button 
+            variant="danger" 
+            onClick={handleDelete}
+            disabled={!inputValue}
+          >
+            Delete
+          </Button>
+          <Button 
+            variant="success"
+            onClick={handleSearch}
+            disabled={!inputValue}
+          >
+            Search
+          </Button>
+        </ControlGroup>
+
+        <Divider />
+
+        <ControlGroup>
+          <Button 
+            variant="secondary"
             onClick={handleUndo}
-            disabled={currentStateIndex === 0}
+            disabled={currentIndex === 0}
           >
             Undo
-          </ActionButton>
-          <ActionButton 
-            className="clear"
+          </Button>
+          <Button 
+            variant="secondary"
+            onClick={handleRedo}
+            disabled={currentIndex === history.length - 1}
+          >
+            Redo
+          </Button>
+          <Button 
+            variant="danger"
             onClick={handleClear}
+            disabled={!currentData.nodes.length}
           >
             Clear
-          </ActionButton>
-        </ButtonGroup>
-        
-        <SpeedControl>
-          <SpeedLabel>Animation Speed:</SpeedLabel>
-          <SpeedSlider
-            type="range"
-            min="100"
-            max="900"
-            value={1000 - animationSpeed}
-            onChange={handleSpeedChange}
-          />
-        </SpeedControl>
+          </Button>
+        </ControlGroup>
       </ControlPanel>
       
-      <VisualizationArea>
-        <TreeVisualization
-          treeData={currentTreeData}
-          animations={treeHistory[currentStateIndex].animations}
-          animationSpeed={animationSpeed}
+      <VisualizationContainer>
+        <TreeVisualization 
+          data={currentData}
+          animations={history[currentIndex].animations}
+          animationSpeed={800}
         />
-      </VisualizationArea>
+      </VisualizationContainer>
     </AppContainer>
   );
 };
 
-export default App; 
+export default App;

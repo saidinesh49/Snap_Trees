@@ -1,341 +1,444 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import styled from 'styled-components';
-import { TreeData, BaseNode, AnimationStep } from '../types';
+import { TreeData, BSTNode, AnimationStep } from '../types';
 
-const SVGContainer = styled.div`
+type D3Selection = d3.Selection<SVGGElement, BSTNode, null, undefined>;
+
+const Container = styled.div`
   width: 100%;
   height: 100%;
   background: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 12px;
   overflow: hidden;
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  min-height: 400px;
 `;
 
-interface TreeVisualizationProps {
-  treeData: TreeData;
-  animations: AnimationStep[];
-  animationSpeed: number;
+const SVGContainer = styled.svg`
+  width: 100%;
+  height: 100%;
+`;
+
+// Add interface for MessageOverlay props
+interface MessageOverlayProps {
+  visible: boolean;
 }
 
-export const TreeVisualization: React.FC<TreeVisualizationProps> = ({
-  treeData,
-  animations,
-  animationSpeed,
+const MessageOverlay = styled.div<MessageOverlayProps>`
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  display: ${({ visible }: MessageOverlayProps) => visible ? 'block' : 'none'};
+  opacity: ${({ visible }: MessageOverlayProps) => visible ? 1 : 0};
+`;
+
+interface Props {
+  data: TreeData;
+  animations: AnimationStep[];
+  animationSpeed?: number;
+}
+
+export const TreeVisualization: React.FC<Props> = ({ 
+  data, 
+  animations, 
+  animationSpeed = 1000 
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [currentMessage, setCurrentMessage] = useState<string>('');
+  const [isAnimating, setIsAnimating] = useState(false);
 
+  // Handle container resizing
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        setDimensions({ width, height });
-      }
+    const resizeObserver = new ResizeObserver(entries => {
+      const { width, height } = entries[0].contentRect;
+      setDimensions({ width, height });
     });
 
     resizeObserver.observe(containerRef.current);
     return () => resizeObserver.disconnect();
   }, []);
 
-  const calculateTreeDimensions = useCallback(() => {
-    const nodeCount = treeData.nodes.length;
-    if (nodeCount === 0) return { width: 0, height: 0, centerX: 0, centerY: 0 };
+  // Add reset handler
+  const resetNodeStates = () => {
+    if (!svgRef.current || isAnimating) return;
 
-    const minX = Math.min(...treeData.nodes.map(node => node.x || 0));
-    const maxX = Math.max(...treeData.nodes.map(node => node.x || 0));
-    const minY = Math.min(...treeData.nodes.map(node => node.y || 0));
-    const maxY = Math.max(...treeData.nodes.map(node => node.y || 0));
-    
-    const width = maxX - minX;
-    const height = maxY - minY;
-    const centerX = (maxX + minX) / 2;
-    const centerY = (maxY + minY) / 2;
+    const nodes = d3.select(svgRef.current)
+      .selectAll('g.node');
 
-    const padding = Math.max(width, height) * 0.2;
-    
-    return {
-      width: width + padding * 2,
-      height: height + padding * 2,
-      centerX,
-      centerY
-    };
-  }, [treeData]);
+    nodes.select('circle')
+      .transition()
+      .duration(300)
+      .attr('fill', 'url(#nodeGradient)')
+      .attr('stroke', '#1c7ed6')
+      .attr('stroke-width', 2);
 
-  const centerTree = useCallback(() => {
-    if (!svgRef.current || !containerRef.current) return;
+    setCurrentMessage('');
+  };
 
-    const treeDimensions = calculateTreeDimensions();
-    const { width: containerWidth, height: containerHeight } = dimensions;
-
-    const scale = Math.min(
-      containerWidth / (treeDimensions.width || 1),
-      containerHeight / (treeDimensions.height || 1),
-      1
-    ) * 0.9;
-
-    const translateX = containerWidth / 2;
-    const translateY = containerHeight / 2;
-
-    const g = d3.select(svgRef.current).select('g');
-    
-    g.transition()
-      .duration(750)
-      .attr('transform', `translate(${translateX},${translateY}) scale(${scale}) translate(${-treeDimensions.centerX},${-treeDimensions.centerY})`);
-  }, [calculateTreeDimensions, dimensions]);
-
+  // Add click handler to container
   useEffect(() => {
-    if (!svgRef.current || dimensions.width === 0) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleClick = () => resetNodeStates();
+    container.addEventListener('click', handleClick);
+
+    return () => {
+      container.removeEventListener('click', handleClick);
+    };
+  }, [isAnimating]);
+
+  // Update animation processing
+  useEffect(() => {
+    if (!animations.length) return;
+    let timeoutId: NodeJS.Timeout;
+    setIsAnimating(true);
+
+    const processAnimation = async (index: number) => {
+      if (index >= animations.length) {
+        setIsAnimating(false);
+        // Auto-reset after last animation
+        setTimeout(() => {
+          resetNodeStates();
+        }, 2000);
+        return;
+      }
+
+      const animation = animations[index];
+      setCurrentMessage(animation.message);
+
+      // Declare nodes selection at the beginning
+      const nodes = d3.select(svgRef.current)
+        .selectAll('g.node');
+
+      // Reset all nodes to default state
+      nodes.select('circle')
+        .transition()
+        .duration(animationSpeed / 2)
+        .attr('fill', 'url(#nodeGradient)')
+        .attr('stroke', '#1c7ed6')
+        .attr('stroke-width', 2);
+
+      // Apply animation based on type
+      switch (animation.type) {
+        case 'highlight':
+          animation.nodes.forEach(node => {
+            nodes.filter(d => (d as any).value === node.value)
+              .select('circle')
+              .transition()
+              .duration(animationSpeed / 2)
+              .attr('fill', 'url(#highlightGradient)')
+              .attr('stroke', '#ffd43b')
+              .attr('stroke-width', 3);
+          });
+          break;
+
+        case 'compare':
+          animation.nodes.forEach(node => {
+            nodes.filter(d => (d as any).value === node.value)
+              .select('circle')
+              .transition()
+              .duration(animationSpeed / 2)
+              .attr('fill', 'url(#compareGradient)')
+              .attr('stroke', '#40c057')
+              .attr('stroke-width', 3);
+          });
+          break;
+
+        case 'found':
+          animation.nodes.forEach(node => {
+            nodes.filter(d => (d as any).value === node.value)
+              .select('circle')
+              .transition()
+              .duration(animationSpeed / 2)
+              .attr('fill', 'url(#successGradient)')
+              .attr('stroke', '#37b24d')
+              .attr('stroke-width', 3);
+          });
+          break;
+
+        case 'notFound':
+          nodes.select('circle')
+            .transition()
+            .duration(animationSpeed / 2)
+            .attr('fill', 'url(#errorGradient)')
+            .attr('stroke', '#fa5252')
+            .attr('stroke-width', 3);
+          break;
+
+        case 'clear':
+          if (animation.nodes.length === 0) break;
+          
+          // Fade out the node being removed
+          animation.nodes.forEach(node => {
+            const nodeSelection = nodes.filter(d => (d as any).value === node.value);
+            
+            // Fade out and shrink the node
+            nodeSelection
+              .transition()
+              .duration(animationSpeed / 2)
+              .style('opacity', 0)
+              .attr('transform', function(d) {
+                const data = d as BSTNode;
+                return `translate(${data.x},${data.y}) scale(0.1)`;
+              })
+              .remove();
+            
+            // Fade out associated links
+            d3.select(svgRef.current)
+              .selectAll('path.link')
+              .filter(d => {
+                const link = d as { source: BSTNode; target: BSTNode };
+                return link.source.value === node.value || link.target.value === node.value;
+              })
+              .transition()
+              .duration(animationSpeed / 2)
+              .style('opacity', 0)
+              .remove();
+          });
+          
+          // Wait for fade out animation
+          await new Promise(resolve => setTimeout(resolve, animationSpeed / 2));
+          break;
+      }
+
+      timeoutId = setTimeout(() => {
+        processAnimation(index + 1);
+      }, animationSpeed);
+    };
+
+    processAnimation(0);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      setIsAnimating(false);
+    };
+  }, [animations, animationSpeed]);
+
+  // Main visualization effect
+  useEffect(() => {
+    if (!svgRef.current || !data.nodes.length) return;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    addGradientDef(svg, 'rootGradient', ['#ff6b6b', '#ee5253']);
-    addGradientDef(svg, 'nodeGradient', ['#54a0ff', '#2e86de']);
-    addGradientDef(svg, 'highlightGradient', ['#ffd32a', '#ffa801']);
-    addShadowDef(svg);
-
+    // Create main group for transformations
     const g = svg.append('g');
 
-    const links = g.selectAll('path.link')
-      .data(treeData.links)
+    // Add zoom behavior
+    const zoom = d3.zoom()
+      .scaleExtent([0.5, 2])
+      .on('zoom', (event) => {
+        g.attr('transform', event.transform);
+      });
+
+    svg.call(zoom as any);
+
+    // Calculate tree bounds with padding
+    const padding = 80;
+    const minX = Math.min(...data.nodes.map(n => n.x)) - padding;
+    const maxX = Math.max(...data.nodes.map(n => n.x)) + padding;
+    const minY = Math.min(...data.nodes.map(n => n.y)) - padding;
+    const maxY = Math.max(...data.nodes.map(n => n.y)) + padding;
+
+    // Calculate scale to fit the tree
+    const width = dimensions.width;
+    const height = dimensions.height;
+    const scale = Math.min(
+      width / (maxX - minX || 1),
+      height / (maxY - minY || 1)
+    ) * 0.9;
+
+    // Center the tree
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    // Create gradient definitions
+    const defs = svg.append('defs');
+
+    // Node gradient
+    const nodeGradient = defs.append('linearGradient')
+      .attr('id', 'nodeGradient')
+      .attr('gradientTransform', 'rotate(45)');
+
+    nodeGradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', '#4dabf7');
+
+    nodeGradient.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', '#228be6');
+
+    // Add drop shadow filter
+    const filter = defs.append('filter')
+      .attr('id', 'drop-shadow')
+      .attr('height', '130%');
+
+    filter.append('feGaussianBlur')
+      .attr('in', 'SourceAlpha')
+      .attr('stdDeviation', 3)
+      .attr('result', 'blur');
+
+    filter.append('feOffset')
+      .attr('in', 'blur')
+      .attr('dx', 2)
+      .attr('dy', 2)
+      .attr('result', 'offsetBlur');
+
+    const feMerge = filter.append('feMerge');
+    feMerge.append('feMergeNode')
+      .attr('in', 'offsetBlur');
+    feMerge.append('feMergeNode')
+      .attr('in', 'SourceGraphic');
+
+    // Initial transform
+    g.attr('transform', `translate(${width/2},${height/2}) scale(${scale}) translate(${-centerX},${-centerY})`);
+
+    // Draw links with curved paths
+    g.selectAll('path.link')
+      .data(data.links)
       .enter()
       .append('path')
       .attr('class', 'link')
-      .attr('d', d3.linkHorizontal<any, any>()
-        .x(d => d.x)
-        .y(d => d.y))
-      .attr('fill', 'none')
-      .attr('stroke', '#999')
+      .attr('d', d => {
+        const sourceX = d.source.x;
+        const sourceY = d.source.y;
+        const targetX = d.target.x;
+        const targetY = d.target.y;
+        
+        // Calculate control points for a smoother curve
+        const midY = (sourceY + targetY) / 2;
+        
+        return `M ${sourceX} ${sourceY}
+                C ${sourceX} ${sourceY + 20}
+                  ${targetX} ${targetY - 20}
+                  ${targetX} ${targetY}`;
+      })
+      .attr('stroke', '#dee2e6')
       .attr('stroke-width', 2)
-      .style('opacity', 0)
+      .attr('fill', 'none')
+      .attr('opacity', 0)
       .transition()
-      .duration(750)
-      .style('opacity', 1);
+      .duration(500)
+      .attr('opacity', 1);
 
-    const nodes = g.selectAll('g.node')
-      .data(treeData.nodes)
+    // Create node groups with transitions
+    const nodeGroups = g.selectAll('g.node')
+      .data(data.nodes)
       .enter()
       .append('g')
       .attr('class', 'node')
       .attr('transform', d => `translate(${d.x},${d.y})`)
       .style('opacity', 0)
       .transition()
-      .duration(750)
+      .duration(500)
       .style('opacity', 1);
 
-    nodes.selection().append('circle')
-      .attr('r', d => d.parent ? 25 : 35)
-      .attr('fill', d => d.parent ? 'url(#nodeGradient)' : 'url(#rootGradient)')
-      .attr('stroke', d => d.parent ? '#2e86de' : '#ee5253')
-      .attr('stroke-width', d => d.parent ? 2 : 3)
-      .style('filter', 'url(#dropShadow)');
+    // Add node circles with gradients and shadows
+    nodeGroups.selection()
+      .append('circle')
+      .attr('r', 25)
+      .attr('fill', (d: BSTNode) => {
+        if (d.state === 'highlight') return 'url(#highlightGradient)';
+        if (d.state === 'compare') return 'url(#compareGradient)';
+        if (d.state === 'found') return 'url(#successGradient)';
+        if (d.state === 'notFound') return 'url(#errorGradient)';
+        return 'url(#nodeGradient)';
+      })
+      .attr('stroke', (d: BSTNode) => {
+        if (d.state === 'highlight') return '#ffd43b';
+        if (d.state === 'compare') return '#40c057';
+        if (d.state === 'found') return '#37b24d';
+        if (d.state === 'notFound') return '#fa5252';
+        return '#1c7ed6';
+      })
+      .attr('stroke-width', (d: BSTNode) => {
+        return d.state !== 'default' ? 3 : 2;
+      })
+      .style('filter', 'url(#drop-shadow)')
+      .style('cursor', 'pointer');
 
-    nodes.selection().append('text')
-      .attr('dy', '.35em')
+    // Add highlight gradient
+    const highlightGradient = defs.append('linearGradient')
+      .attr('id', 'highlightGradient')
+      .attr('gradientTransform', 'rotate(45)');
+
+    highlightGradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', '#ffd43b');
+
+    highlightGradient.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', '#fab005');
+
+    // Add node values with better typography
+    nodeGroups.selection()
+      .append('text')
+      .attr('dy', '0.35em')
       .attr('text-anchor', 'middle')
-      .attr('fill', '#fff')
-      .style('font-size', d => d.parent ? '14px' : '16px')
-      .style('font-weight', 'bold')
+      .attr('fill', 'white')
+      .attr('font-size', '14px')
+      .attr('font-weight', 'bold')
       .text(d => d.value);
 
-    if (animations.length > 0) {
-      processAnimations(g, animations);
-    }
-
-    centerTree();
-
-    const resizeObserver = new ResizeObserver(() => {
-      centerTree();
-    });
-
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [treeData, animations, centerTree, dimensions, animationSpeed]);
-
-  const processAnimations = (
-    g: d3.Selection<SVGGElement, unknown, null, undefined>,
-    animations: AnimationStep[]
-  ) => {
-    let delay = 0;
-    animations.forEach((animation) => {
-      const duration = animation.duration * (animationSpeed / 500);
-      
-      animation.nodes.forEach(node => {
-        const nodeElement = g.selectAll('.node')
-          .filter((d: any) => d.value === node.value);
-        
-        switch (animation.type) {
-          case 'HIGHLIGHT':
-            highlightNode(nodeElement, delay, duration);
-            break;
-          case 'COLOR_CHANGE':
-            changeNodeColor(nodeElement, delay, duration, node.value === treeData.nodes[0].value);
-            break;
-          case 'MOVE':
-            moveNode(nodeElement, node, delay, duration);
-            updateConnectedLinks(g, node, delay, duration);
-            break;
-        }
-      });
-      
-      delay += duration;
-    });
-  };
-
-  const highlightNode = (
-    nodeElement: d3.Selection<any, any, any, any>,
-    delay: number,
-    duration: number
-  ) => {
-    nodeElement.select('circle')
-      .transition()
-      .delay(delay)
-      .duration(duration * 0.5)
-      .attr('fill', 'url(#highlightGradient)')
-      .attr('stroke', '#ffa801')
-      .attr('stroke-width', 3)
-      .transition()
-      .duration(duration * 0.5)
-      .attr('fill', d => (d as any).parent ? 'url(#nodeGradient)' : 'url(#rootGradient)')
-      .attr('stroke', d => (d as any).parent ? '#2e86de' : '#ee5253')
-      .attr('stroke-width', d => (d as any).parent ? 2 : 3);
-  };
-
-  const changeNodeColor = (
-    nodeElement: d3.Selection<any, any, any, any>,
-    delay: number,
-    duration: number,
-    isRoot: boolean
-  ) => {
-    const successGradient: [string, string] = ['#2ecc71', '#27ae60'];
-    const failureGradient: [string, string] = ['#e74c3c', '#c0392b'];
-
-    addGradientDef(d3.select(svgRef.current!), 'successGradient', successGradient);
-    addGradientDef(d3.select(svgRef.current!), 'failureGradient', failureGradient);
-
-    nodeElement.select('circle')
-      .transition()
-      .delay(delay)
-      .duration(duration)
-      .attr('fill', 'url(#successGradient)')
-      .attr('stroke', '#27ae60')
-      .attr('stroke-width', 3)
-      .transition()
-      .duration(duration)
-      .attr('fill', d => (d as any).parent ? 'url(#nodeGradient)' : 'url(#rootGradient)')
-      .attr('stroke', d => (d as any).parent ? '#2e86de' : '#ee5253')
-      .attr('stroke-width', d => (d as any).parent ? 2 : 3);
-
-    nodeElement.select('circle')
-      .transition()
-      .delay(delay)
-      .duration(duration / 4)
-      .attr('r', d => ((d as any).parent ? 30 : 40))
-      .transition()
-      .duration(duration / 4)
-      .attr('r', d => ((d as any).parent ? 25 : 35));
-  };
-
-  const moveNode = (
-    nodeElement: d3.Selection<any, any, any, any>,
-    node: BaseNode,
-    delay: number,
-    duration: number
-  ) => {
-    nodeElement
-      .transition()
-      .delay(delay)
-      .duration(duration)
-      .attr('transform', `translate(${node.x},${node.y})`);
-  };
-
-  const updateConnectedLinks = (
-    g: d3.Selection<SVGGElement, unknown, null, undefined>,
-    node: BaseNode,
-    delay: number,
-    duration: number
-  ) => {
-    g.selectAll('path.link')
-      .filter(function(d: any) {
-        return d.source.value === node.value || d.target.value === node.value;
+    // Add hover effects
+    g.selectAll<SVGGElement, BSTNode>('g.node')
+      .on('mouseover', function(event: MouseEvent, d: BSTNode) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr('transform', `translate(${d.x},${d.y}) scale(1.1)`);
       })
-      .transition()
-      .delay(delay)
-      .duration(duration)
-      .attr('d', d3.linkHorizontal<any, any>()
-        .x(d => d.x)
-        .y(d => d.y));
-  };
+      .on('mouseout', function(event: MouseEvent, d: BSTNode) {
+        d3.select(this)
+          .transition()
+          .duration(200)
+          .attr('transform', `translate(${d.x},${d.y}) scale(1)`);
+      });
+
+    // Add additional gradients for different states
+    const addGradient = (id: string, colors: [string, string]) => {
+      const gradient = defs.append('linearGradient')
+        .attr('id', id)
+        .attr('gradientTransform', 'rotate(45)');
+
+      gradient.append('stop')
+        .attr('offset', '0%')
+        .attr('stop-color', colors[0]);
+
+      gradient.append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', colors[1]);
+    };
+
+    addGradient('compareGradient', ['#69db7c', '#40c057']);
+    addGradient('successGradient', ['#51cf66', '#37b24d']);
+    addGradient('errorGradient', ['#ff6b6b', '#fa5252']);
+
+  }, [data, dimensions]);
 
   return (
-    <SVGContainer ref={containerRef}>
-      <svg 
-        ref={svgRef} 
-        width="100%" 
-        height="100%"
-        style={{ overflow: 'visible' }}
+    <Container ref={containerRef}>
+      <SVGContainer
+        ref={svgRef}
+        width={dimensions.width}
+        height={dimensions.height}
       />
-    </SVGContainer>
+      <MessageOverlay visible={!!currentMessage}>
+        {currentMessage}
+      </MessageOverlay>
+    </Container>
   );
-};
-
-function addGradientDef(
-  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
-  id: string,
-  colors: [string, string]
-) {
-  const gradient = svg.append('defs')
-    .append('linearGradient')
-    .attr('id', id)
-    .attr('x1', '0%')
-    .attr('y1', '0%')
-    .attr('x2', '0%')
-    .attr('y2', '100%');
-
-  gradient.append('stop')
-    .attr('offset', '0%')
-    .attr('stop-color', colors[0]);
-
-  gradient.append('stop')
-    .attr('offset', '100%')
-    .attr('stop-color', colors[1]);
-}
-
-function addShadowDef(svg: d3.Selection<SVGSVGElement, unknown, null, undefined>) {
-  const defs = svg.append('defs');
-  const filter = defs.append('filter')
-    .attr('id', 'dropShadow')
-    .attr('height', '130%');
-
-  filter.append('feGaussianBlur')
-    .attr('in', 'SourceAlpha')
-    .attr('stdDeviation', 3)
-    .attr('result', 'blur');
-
-  filter.append('feOffset')
-    .attr('in', 'blur')
-    .attr('dx', 2)
-    .attr('dy', 2)
-    .attr('result', 'offsetBlur');
-
-  const feMerge = filter.append('feMerge');
-  feMerge.append('feMergeNode')
-    .attr('in', 'offsetBlur');
-  feMerge.append('feMergeNode')
-    .attr('in', 'SourceGraphic');
-} 
+}; 

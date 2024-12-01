@@ -1,50 +1,18 @@
-import { BaseNode, TreeData, AnimationStep } from '../types';
-import { BaseTree } from './BaseTree';
+import { TreeData, BSTNode, AnimationStep } from '../types';
 
-interface BSTNode extends BaseNode {
-  left: BSTNode | null;
-  right: BSTNode | null;
-  parent: BSTNode | null;
-  height: number;
-}
+export class BinarySearchTree {
+  private root: BSTNode | null = null;
+  private nodeSpacing = { x: 60, y: 80 };
 
-export class BinarySearchTree extends BaseTree<BSTNode> {
-  protected createAnimationStep(
-    type: AnimationStep['type'],
-    nodes: BaseNode[],
-    duration: number = 500
-  ): AnimationStep {
-    return {
-      type,
-      nodes,
-      duration,
-    };
-  }
-
-  protected createNode(
-    value: number,
-    parent: BSTNode | null = null
-  ): BSTNode {
+  private createNode(value: number): BSTNode {
     return {
       value,
       left: null,
       right: null,
-      parent,
-      height: 1,
       x: 0,
-      y: 0
+      y: 0,
+      state: 'default'
     };
-  }
-
-  protected addLinks(node: BSTNode, links: TreeData['links']): void {
-    if (node.left) {
-      links.push({ source: node, target: node.left });
-      this.addLinks(node.left, links);
-    }
-    if (node.right) {
-      links.push({ source: node, target: node.right });
-      this.addLinks(node.right, links);
-    }
   }
 
   insert(value: number): AnimationStep[] {
@@ -53,279 +21,394 @@ export class BinarySearchTree extends BaseTree<BSTNode> {
     if (!this.root) {
       this.root = this.createNode(value);
       animations.push({
-        type: 'HIGHLIGHT',
+        type: 'highlight',
         nodes: [this.root],
-        duration: 500
+        message: `Creating root node with value ${value}`
       });
-      return animations;
+    } else {
+      this.insertNodeWithAnimation(this.root, value, animations);
     }
-
-    const insertHelper = (node: BSTNode, val: number): void => {
-      // Highlight current node being compared
-      animations.push({
-        type: 'HIGHLIGHT',
-        nodes: [node],
-        duration: 300
-      });
-
-      if (val < node.value) {
-        if (!node.left) {
-          node.left = this.createNode(val, node);
-          animations.push({
-            type: 'HIGHLIGHT',
-            nodes: [node.left],
-            duration: 500
-          });
-        } else {
-          insertHelper(node.left, val);
-        }
-      } else if (val > node.value) {
-        if (!node.right) {
-          node.right = this.createNode(val, node);
-          animations.push({
-            type: 'HIGHLIGHT',
-            nodes: [node.right],
-            duration: 500
-          });
-        } else {
-          insertHelper(node.right, val);
-        }
-      }
-      
-      this.updateHeight(node);
-    };
-
-    insertHelper(this.root, value);
+    
     this.updateNodePositions();
     return animations;
   }
 
-  delete(value: number): AnimationStep[] {
-    const animations: AnimationStep[] = [];
+  private insertNodeWithAnimation(node: BSTNode, value: number, animations: AnimationStep[]): void {
+    // Highlight current node being compared
+    animations.push({
+      type: 'highlight',
+      nodes: [node],
+      message: `Comparing with node ${node.value}`
+    });
 
-    const findInorderSuccessor = (node: BSTNode): BSTNode => {
-      // Find the leftmost node in the right subtree (inorder successor)
-      let current = node.right!;
-      
+    if (value < node.value) {
       animations.push({
-        type: 'HIGHLIGHT',
-        nodes: [current],
-        duration: 500
-      });
-
-      while (current.left) {
-        current = current.left;
-        animations.push({
-          type: 'HIGHLIGHT',
-          nodes: [current],
-          duration: 500
-        });
-      }
-      return current;
-    };
-
-    const deleteHelper = (node: BSTNode | null, val: number): BSTNode | null => {
-      if (!node) return null;
-
-      // Highlight current node being examined
-      animations.push({
-        type: 'HIGHLIGHT',
+        type: 'compare',
         nodes: [node],
-        duration: 500
+        message: `${value} is less than ${node.value}, moving left`
       });
 
-      if (val < node.value) {
-        node.left = deleteHelper(node.left, val);
-        if (node.left) node.left.parent = node;
-      } else if (val > node.value) {
-        node.right = deleteHelper(node.right, val);
-        if (node.right) node.right.parent = node;
+      if (node.left === null) {
+        node.left = this.createNode(value);
+        animations.push({
+          type: 'insert',
+          nodes: [node.left],
+          message: `Inserting ${value} as left child of ${node.value}`
+        });
       } else {
-        // Node to delete found
-        animations.push({
-          type: 'COLOR_CHANGE',
-          nodes: [node],
-          duration: 800
-        });
-
-        // Case 1: Leaf node
-        if (!node.left && !node.right) {
-          return null;
-        }
-
-        // Case 2: Node with one child
-        if (!node.left) {
-          const rightChild = node.right;
-          if (rightChild) rightChild.parent = node.parent;
-          return rightChild;
-        }
-        if (!node.right) {
-          const leftChild = node.left;
-          if (leftChild) leftChild.parent = node.parent;
-          return leftChild;
-        }
-
-        // Case 3: Node with two children
-        // Find inorder successor (smallest node in right subtree)
-        const successor = findInorderSuccessor(node);
-        
-        // Show the replacement process
-        animations.push({
-          type: 'HIGHLIGHT',
-          nodes: [node, successor],
-          duration: 800
-        });
-
-        // Copy successor data to current node
-        const oldValue = node.value;
-        node.value = successor.value;
-        
-        // Show the value replacement
-        animations.push({
-          type: 'COLOR_CHANGE',
-          nodes: [node],
-          duration: 800
-        });
-
-        // Delete the successor (which will be either a leaf or have one right child)
-        node.right = deleteHelper(node.right, successor.value);
-        if (node.right) node.right.parent = node;
+        this.insertNodeWithAnimation(node.left, value, animations);
       }
+    } else if (value > node.value) {
+      animations.push({
+        type: 'compare',
+        nodes: [node],
+        message: `${value} is greater than ${node.value}, moving right`
+      });
 
-      // Update height and return
-      this.updateHeight(node);
-      return node;
-    };
-
-    if (this.root) {
-      this.root = deleteHelper(this.root, value);
-      this.updateNodePositions();
+      if (node.right === null) {
+        node.right = this.createNode(value);
+        animations.push({
+          type: 'insert',
+          nodes: [node.right],
+          message: `Inserting ${value} as right child of ${node.value}`
+        });
+      } else {
+        this.insertNodeWithAnimation(node.right, value, animations);
+      }
     }
-
-    return animations;
   }
 
   search(value: number): AnimationStep[] {
     const animations: AnimationStep[] = [];
-    let found = false;
-    
-    const searchHelper = (node: BSTNode | null, val: number): boolean => {
-      if (!node) {
-        return false;
-      }
-
-      // Highlight current node being visited
-      animations.push({
-        type: 'HIGHLIGHT',
-        nodes: [node],
-        duration: 800
-      });
-
-      if (val === node.value) {
-        // Node found - highlight it with success color
-        animations.push({
-          type: 'COLOR_CHANGE',
-          nodes: [node],
-          duration: 1500
-        });
-        found = true;
-        return true;
-      }
-
-      if (val < node.value && node.left) {
-        // Show path taken to left
-        animations.push({
-          type: 'HIGHLIGHT',
-          nodes: [node, node.left],
-          duration: 800
-        });
-        return searchHelper(node.left, val);
-      } 
-      
-      if (val > node.value && node.right) {
-        // Show path taken to right
-        animations.push({
-          type: 'HIGHLIGHT',
-          nodes: [node, node.right],
-          duration: 800
-        });
-        return searchHelper(node.right, val);
-      }
-
-      // Value not found - show failure color
-      animations.push({
-        type: 'COLOR_CHANGE',
-        nodes: [node],
-        duration: 1500
-      });
-      return false;
-    };
-
-    searchHelper(this.root, value);
+    this.searchNodeWithAnimation(this.root, value, animations);
     return animations;
   }
 
-  private updateHeight(node: BSTNode): void {
-    const leftHeight = node.left ? node.left.height : 0;
-    const rightHeight = node.right ? node.right.height : 0;
-    node.height = Math.max(leftHeight, rightHeight) + 1;
+  private searchNodeWithAnimation(node: BSTNode | null, value: number, animations: AnimationStep[]): boolean {
+    if (node === null) {
+      animations.push({
+        type: 'notFound',
+        nodes: [],
+        message: `Value ${value} not found in the tree`
+      });
+      return false;
+    }
+
+    animations.push({
+      type: 'highlight',
+      nodes: [node],
+      message: `Checking node ${node.value}`
+    });
+
+    if (value === node.value) {
+      animations.push({
+        type: 'found',
+        nodes: [node],
+        message: `Found value ${value}!`
+      });
+      return true;
+    }
+
+    if (value < node.value) {
+      animations.push({
+        type: 'compare',
+        nodes: [node],
+        message: `${value} is less than ${node.value}, moving left`
+      });
+      return this.searchNodeWithAnimation(node.left, value, animations);
+    }
+
+    animations.push({
+      type: 'compare',
+      nodes: [node],
+      message: `${value} is greater than ${node.value}, moving right`
+    });
+    return this.searchNodeWithAnimation(node.right, value, animations);
+  }
+
+  clear(): AnimationStep[] {
+    const animations: AnimationStep[] = [];
+    
+    if (this.root) {
+      const nodes = this.getAllNodes();
+      animations.push({
+        type: 'clear',
+        nodes: nodes,
+        message: 'Clearing all nodes from the tree'
+      });
+      
+      // Actually clear the tree
+      this.root = null;
+    }
+    
+    return animations;
+  }
+
+  private getAllNodes(): BSTNode[] {
+    const nodes: BSTNode[] = [];
+    
+    const traverse = (node: BSTNode | null) => {
+      if (node) {
+        nodes.push(node);
+        traverse(node.left);
+        traverse(node.right);
+      }
+    };
+    
+    traverse(this.root);
+    return nodes;
+  }
+
+  delete(value: number): AnimationStep[] {
+    const animations: AnimationStep[] = [];
+    
+    // First, animate the search process
+    this.searchNodeForDeletion(this.root, value, animations);
+    
+    // Then perform the actual deletion with animation
+    this.root = this.deleteNodeWithAnimation(this.root, value, animations);
+    
+    this.updateNodePositions();
+    return animations;
+  }
+
+  private searchNodeForDeletion(node: BSTNode | null, value: number, animations: AnimationStep[]): void {
+    if (!node) {
+      animations.push({
+        type: 'notFound',
+        nodes: [],
+        message: `Node ${value} not found for deletion`
+      });
+      return;
+    }
+
+    // Highlight current node being examined
+    animations.push({
+      type: 'highlight',
+      nodes: [node],
+      message: `Searching for node ${value} - examining node ${node.value}`
+    });
+
+    if (value === node.value) {
+      animations.push({
+        type: 'found',
+        nodes: [node],
+        message: `Found node ${value} to delete`
+      });
+      return;
+    }
+
+    if (value < node.value) {
+      animations.push({
+        type: 'compare',
+        nodes: [node],
+        message: `${value} is less than ${node.value}, moving left`
+      });
+      this.searchNodeForDeletion(node.left, value, animations);
+    } else {
+      animations.push({
+        type: 'compare',
+        nodes: [node],
+        message: `${value} is greater than ${node.value}, moving right`
+      });
+      this.searchNodeForDeletion(node.right, value, animations);
+    }
+  }
+
+  private deleteNodeWithAnimation(
+    node: BSTNode | null, 
+    value: number, 
+    animations: AnimationStep[]
+  ): BSTNode | null {
+    if (!node) return null;
+
+    if (value < node.value) {
+      node.left = this.deleteNodeWithAnimation(node.left, value, animations);
+    } else if (value > node.value) {
+      node.right = this.deleteNodeWithAnimation(node.right, value, animations);
+    } else {
+      // Node to delete found - handle different cases
+      
+      // Case 1: Leaf node
+      if (!node.left && !node.right) {
+        animations.push({
+          type: 'clear',
+          nodes: [node],
+          message: `Removing leaf node ${node.value}`
+        });
+        return null;
+      }
+      
+      // Case 2: Node with one child
+      if (!node.left) {
+        const successor = node.right!;
+        animations.push({
+          type: 'highlight',
+          nodes: [successor],
+          message: `Node ${node.value} has only right child. Replacing with ${successor.value}`
+        });
+        animations.push({
+          type: 'clear',
+          nodes: [node],
+          message: `Removing node ${node.value}`
+        });
+        return successor;
+      }
+      if (!node.right) {
+        const successor = node.left!;
+        animations.push({
+          type: 'highlight',
+          nodes: [successor],
+          message: `Node ${node.value} has only left child. Replacing with ${successor.value}`
+        });
+        animations.push({
+          type: 'clear',
+          nodes: [node],
+          message: `Removing node ${node.value}`
+        });
+        return successor;
+      }
+      
+      // Case 3: Node with two children
+      animations.push({
+        type: 'highlight',
+        nodes: [node],
+        message: `Node ${node.value} has two children. Finding successor...`
+      });
+      
+      // Find inorder successor (smallest node in right subtree)
+      let successor = node.right;
+      let parent = node;
+      
+      while (successor.left) {
+        animations.push({
+          type: 'highlight',
+          nodes: [successor],
+          message: `Looking for smallest value in right subtree - checking ${successor.value}`
+        });
+        parent = successor;
+        successor = successor.left;
+      }
+      
+      animations.push({
+        type: 'highlight',
+        nodes: [successor],
+        message: `Found successor: ${successor.value}`
+      });
+      
+      // Copy successor data
+      const oldValue = node.value;
+      node.value = successor.value;
+      
+      animations.push({
+        type: 'compare',
+        nodes: [node],
+        message: `Replaced ${oldValue} with successor ${successor.value}`
+      });
+      
+      // Delete the successor
+      if (parent === node) {
+        node.right = successor.right;
+      } else {
+        parent.left = successor.right;
+      }
+      
+      animations.push({
+        type: 'clear',
+        nodes: [successor],
+        message: `Removing successor node from its original position`
+      });
+    }
+    
+    return node;
+  }
+
+  private findMin(node: BSTNode): BSTNode {
+    let current = node;
+    while (current.left !== null) {
+      current = current.left;
+    }
+    return current;
+  }
+
+  private getHeight(node: BSTNode | null): number {
+    if (node === null) return 0;
+    return Math.max(this.getHeight(node.left), this.getHeight(node.right)) + 1;
   }
 
   private updateNodePositions(): void {
     if (!this.root) return;
 
-    const spacing = {
-      x: 80,  // Horizontal spacing between nodes
-      y: 60   // Vertical spacing between levels
-    };
+    const levelHeight = 80;  // Vertical spacing between levels
+    const minSeparation = 50;  // Minimum horizontal separation between nodes
 
-    const updatePosition = (
+    // First pass: compute initial x positions and subtree widths
+    const computeInitialPosition = (
       node: BSTNode,
       level: number,
-      leftBound: number,
-      rightBound: number
-    ): void => {
-      if (!node) return;
+      leftmostX: number = 0
+    ): { width: number; leftX: number; rightX: number } => {
+      if (!node) return { width: 0, leftX: leftmostX, rightX: leftmostX };
 
-      const x = (leftBound + rightBound) / 2;
-      const y = level * spacing.y;
+      node.y = level * levelHeight;  // Set vertical position
 
-      node.x = x;
-      node.y = y;
+      // Recursively position children
+      const leftResult = node.left 
+        ? computeInitialPosition(node.left, level + 1, leftmostX)
+        : { width: 0, leftX: leftmostX, rightX: leftmostX };
 
-      const nextWidth = (rightBound - leftBound) / 2;
-      if (node.left) {
-        updatePosition(node.left, level + 1, leftBound, x);
-      }
-      if (node.right) {
-        updatePosition(node.right, level + 1, x, rightBound);
-      }
+      const rightResult = node.right
+        ? computeInitialPosition(node.right, level + 1, leftResult.rightX + minSeparation)
+        : { width: 0, leftX: leftResult.rightX + minSeparation, rightX: leftResult.rightX + minSeparation };
+
+      // Center the node above its children
+      node.x = (leftResult.rightX + rightResult.leftX) / 2;
+
+      return {
+        width: rightResult.rightX - leftResult.leftX,
+        leftX: leftResult.leftX,
+        rightX: rightResult.rightX
+      };
     };
 
-    // Calculate initial bounds based on tree size
-    const treeWidth = Math.pow(2, this.root.height) * spacing.x;
-    updatePosition(this.root, 0, 0, treeWidth);
+    // Second pass: adjust positions to center the tree
+    const treeMetrics = computeInitialPosition(this.root, 0);
+    const centerOffset = -treeMetrics.width / 2;
+
+    // Center the entire tree
+    const centerTree = (node: BSTNode | null) => {
+      if (!node) return;
+      
+      node.x += centerOffset;
+      centerTree(node.left);
+      centerTree(node.right);
+    };
+
+    centerTree(this.root);
   }
 
   getTreeData(): TreeData {
-    const nodes: BaseNode[] = [];
-    const links: { source: BaseNode; target: BaseNode }[] = [];
+    const nodes: BSTNode[] = [];
+    const links: { source: BSTNode; target: BSTNode }[] = [];
 
-    const traverse = (node: BSTNode | null) => {
-      if (!node) return;
-      
+    const traverse = (node: BSTNode) => {
       nodes.push(node);
+      
       if (node.left) {
         links.push({ source: node, target: node.left });
         traverse(node.left);
       }
+      
       if (node.right) {
         links.push({ source: node, target: node.right });
         traverse(node.right);
       }
     };
 
-    traverse(this.root);
+    if (this.root) {
+      traverse(this.root);
+    }
+
     return { nodes, links };
   }
 
@@ -333,18 +416,13 @@ export class BinarySearchTree extends BaseTree<BSTNode> {
     const newTree = new BinarySearchTree();
     
     const cloneNode = (node: BSTNode | null): BSTNode | null => {
-      if (!node) return null;
+      if (node === null) return null;
       
       const newNode = this.createNode(node.value);
-      newNode.height = node.height;
       newNode.x = node.x;
       newNode.y = node.y;
-      
       newNode.left = cloneNode(node.left);
-      if (newNode.left) newNode.left.parent = newNode;
-      
       newNode.right = cloneNode(node.right);
-      if (newNode.right) newNode.right.parent = newNode;
       
       return newNode;
     };
