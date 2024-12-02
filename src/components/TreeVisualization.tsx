@@ -109,17 +109,15 @@ export const TreeVisualization: React.FC<Props> = ({
     const processAnimation = async (index: number) => {
       if (index >= animations.length) {
         setIsAnimating(false);
-        // Auto-reset after last animation
         setTimeout(() => {
           resetNodeStates();
-        }, 2000);
+        }, 1000);
         return;
       }
 
       const animation = animations[index];
       setCurrentMessage(animation.message);
 
-      // Declare nodes selection at the beginning
       const nodes = d3.select(svgRef.current)
         .selectAll('g.node');
 
@@ -131,71 +129,63 @@ export const TreeVisualization: React.FC<Props> = ({
         .attr('stroke', '#1c7ed6')
         .attr('stroke-width', 2);
 
-      // Apply animation based on type
+      // Add delay between animations
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       switch (animation.type) {
         case 'highlight':
-          animation.nodes.forEach(node => {
-            nodes.filter(d => (d as any).value === node.value)
-              .select('circle')
-              .transition()
-              .duration(animationSpeed / 2)
-              .attr('fill', 'url(#highlightGradient)')
-              .attr('stroke', '#ffd43b')
-              .attr('stroke-width', 3);
-          });
-          break;
-
         case 'compare':
-          animation.nodes.forEach(node => {
-            nodes.filter(d => (d as any).value === node.value)
-              .select('circle')
-              .transition()
-              .duration(animationSpeed / 2)
-              .attr('fill', 'url(#compareGradient)')
-              .attr('stroke', '#40c057')
-              .attr('stroke-width', 3);
-          });
-          break;
-
         case 'found':
           animation.nodes.forEach(node => {
+            const color = animation.type === 'highlight' ? '#ffd43b' : 
+                         animation.type === 'compare' ? '#40c057' : '#37b24d';
+            const gradient = animation.type === 'highlight' ? 'highlightGradient' :
+                           animation.type === 'compare' ? 'compareGradient' : 'successGradient';
+            
             nodes.filter(d => (d as any).value === node.value)
               .select('circle')
               .transition()
-              .duration(animationSpeed / 2)
-              .attr('fill', 'url(#successGradient)')
-              .attr('stroke', '#37b24d')
+              .duration(animationSpeed)
+              .attr('fill', `url(#${gradient})`)
+              .attr('stroke', color)
               .attr('stroke-width', 3);
           });
-          break;
-
-        case 'notFound':
-          nodes.select('circle')
-            .transition()
-            .duration(animationSpeed / 2)
-            .attr('fill', 'url(#errorGradient)')
-            .attr('stroke', '#fa5252')
-            .attr('stroke-width', 3);
+          await new Promise(resolve => setTimeout(resolve, animationSpeed));
           break;
 
         case 'clear':
           if (animation.nodes.length === 0) break;
           
-          // Fade out the node being removed
+          // Highlight node before removal
+          animation.nodes.forEach(node => {
+            const nodeSelection = nodes.filter(d => (d as any).value === node.value);
+            
+            // First highlight the node to be removed
+            nodeSelection
+              .select('circle')
+              .transition()
+              .duration(animationSpeed / 2)
+              .attr('fill', 'url(#errorGradient)')
+              .attr('stroke', '#fa5252')
+              .attr('stroke-width', 3);
+          });
+
+          await new Promise(resolve => setTimeout(resolve, animationSpeed));
+
+          // Then fade out and remove
           animation.nodes.forEach(node => {
             const nodeSelection = nodes.filter(d => (d as any).value === node.value);
             
             // Fade out and shrink the node
             nodeSelection
               .transition()
-              .duration(animationSpeed / 2)
+              .duration(animationSpeed)
               .style('opacity', 0)
               .attr('transform', function(d) {
                 const data = d as BSTNode;
                 return `translate(${data.x},${data.y}) scale(0.1)`;
-              })
-              .remove();
-            
+              });
+
             // Fade out associated links
             d3.select(svgRef.current)
               .selectAll('path.link')
@@ -204,19 +194,17 @@ export const TreeVisualization: React.FC<Props> = ({
                 return link.source.value === node.value || link.target.value === node.value;
               })
               .transition()
-              .duration(animationSpeed / 2)
-              .style('opacity', 0)
-              .remove();
+              .duration(animationSpeed)
+              .style('opacity', 0);
           });
-          
-          // Wait for fade out animation
-          await new Promise(resolve => setTimeout(resolve, animationSpeed / 2));
+
+          await new Promise(resolve => setTimeout(resolve, animationSpeed));
           break;
       }
 
       timeoutId = setTimeout(() => {
         processAnimation(index + 1);
-      }, animationSpeed);
+      }, 500); // Add delay between steps
     };
 
     processAnimation(0);

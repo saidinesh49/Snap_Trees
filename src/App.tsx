@@ -37,6 +37,8 @@ const ControlPanel = styled.div`
 
   @media (max-width: 768px) {
     flex-direction: column;
+    gap: 12px;
+    padding: 16px;
   }
 `;
 
@@ -46,7 +48,9 @@ const ControlGroup = styled.div`
   align-items: center;
 
   @media (max-width: 768px) {
+    flex-direction: column;
     width: 100%;
+    gap: 12px;
   }
 `;
 
@@ -65,7 +69,9 @@ const Input = styled.input`
   }
 
   @media (max-width: 768px) {
-    flex: 1;
+    width: 100%;
+    font-size: 16px;
+    padding: 12px;
   }
 `;
 
@@ -111,7 +117,9 @@ const Button = styled.button<ButtonProps>`
   }
 
   @media (max-width: 768px) {
-    flex: 1;
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
     justify-content: center;
   }
 `;
@@ -179,17 +187,27 @@ const App: React.FC = () => {
     setSearchResult(null);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const value = parseInt(inputValue);
     if (isNaN(value)) return;
 
     const newTree = currentTree.clone();
-    newTree.delete(value);
+    const animations = newTree.delete(value);
+    
     addToHistory({
-      tree: newTree,
-      data: newTree.getTreeData(),
-      animations: []
+      tree: currentTree.clone(),
+      data: currentTree.getTreeData(),
+      animations
     });
+
+    setTimeout(() => {
+      addToHistory({
+        tree: newTree,
+        data: newTree.getTreeData(),
+        animations: []
+      });
+    }, animations.length * 800);
+    
     setInputValue('');
     setSearchResult(null);
   };

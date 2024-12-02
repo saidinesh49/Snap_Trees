@@ -222,104 +222,108 @@ export class BinarySearchTree {
   ): BSTNode | null {
     if (!node) return null;
 
+    // Only traverse if we haven't found the node yet
     if (value < node.value) {
-      node.left = this.deleteNodeWithAnimation(node.left, value, animations);
-    } else if (value > node.value) {
-      node.right = this.deleteNodeWithAnimation(node.right, value, animations);
-    } else {
-      // Node to delete found - handle different cases
-      
-      // Case 1: Leaf node
-      if (!node.left && !node.right) {
-        animations.push({
-          type: 'clear',
-          nodes: [node],
-          message: `Removing leaf node ${node.value}`
-        });
-        return null;
-      }
-      
-      // Case 2: Node with one child
-      if (!node.left) {
-        const successor = node.right!;
-        animations.push({
-          type: 'highlight',
-          nodes: [successor],
-          message: `Node ${node.value} has only right child. Replacing with ${successor.value}`
-        });
-        animations.push({
-          type: 'clear',
-          nodes: [node],
-          message: `Removing node ${node.value}`
-        });
-        return successor;
-      }
-      if (!node.right) {
-        const successor = node.left!;
-        animations.push({
-          type: 'highlight',
-          nodes: [successor],
-          message: `Node ${node.value} has only left child. Replacing with ${successor.value}`
-        });
-        animations.push({
-          type: 'clear',
-          nodes: [node],
-          message: `Removing node ${node.value}`
-        });
-        return successor;
-      }
-      
-      // Case 3: Node with two children
-      animations.push({
-        type: 'highlight',
-        nodes: [node],
-        message: `Node ${node.value} has two children. Finding successor...`
-      });
-      
-      // Find inorder successor (smallest node in right subtree)
-      let successor = node.right;
-      let parent = node;
-      
-      while (successor.left) {
-        animations.push({
-          type: 'highlight',
-          nodes: [successor],
-          message: `Looking for smallest value in right subtree - checking ${successor.value}`
-        });
-        parent = successor;
-        successor = successor.left;
-      }
-      
-      animations.push({
-        type: 'highlight',
-        nodes: [successor],
-        message: `Found successor: ${successor.value}`
-      });
-      
-      // Copy successor data
-      const oldValue = node.value;
-      node.value = successor.value;
-      
       animations.push({
         type: 'compare',
         nodes: [node],
-        message: `Replaced ${oldValue} with successor ${successor.value}`
+        message: `${value} is less than ${node.value}, moving left`
       });
-      
-      // Delete the successor
-      if (parent === node) {
-        node.right = successor.right;
-      } else {
-        parent.left = successor.right;
-      }
-      
+      node.left = this.deleteNodeWithAnimation(node.left, value, animations);
+      return node;
+    } 
+    if (value > node.value) {
+      animations.push({
+        type: 'compare',
+        nodes: [node],
+        message: `${value} is greater than ${node.value}, moving right`
+      });
+      node.right = this.deleteNodeWithAnimation(node.right, value, animations);
+      return node;
+    }
+
+    // We found the node to delete
+    animations.push({
+      type: 'highlight',
+      nodes: [node],
+      message: `Found node ${value} to delete`
+    });
+
+    // Case 1: Leaf node
+    if (!node.left && !node.right) {
       animations.push({
         type: 'clear',
-        nodes: [successor],
-        message: `Removing successor node from its original position`
+        nodes: [node],
+        message: `Removing leaf node ${node.value}`
       });
+      return null;
     }
+
+    // Case 2: Node with only one child
+    if (!node.left) {
+      const successor = node.right!;
+      animations.push({
+        type: 'highlight',
+        nodes: [successor],
+        message: `Replacing node ${node.value} with its right child ${successor.value}`
+      });
+      return successor;
+    }
+    if (!node.right) {
+      const successor = node.left!;
+      animations.push({
+        type: 'highlight',
+        nodes: [successor],
+        message: `Replacing node ${node.value} with its left child ${successor.value}`
+      });
+      return successor;
+    }
+
+    // Case 3: Node with two children
+    animations.push({
+      type: 'highlight',
+      nodes: [node],
+      message: `Node ${node.value} has two children, finding inorder successor`
+    });
+
+    // Find the inorder successor (smallest value in right subtree)
+    let successorParent = node;
+    let successor = node.right;
     
+    while (successor.left) {
+      animations.push({
+        type: 'compare',
+        nodes: [successor],
+        message: `Looking for smallest value in right subtree - checking ${successor.value}`
+      });
+      successorParent = successor;
+      successor = successor.left;
+    }
+
+    animations.push({
+      type: 'highlight',
+      nodes: [successor],
+      message: `Found inorder successor: ${successor.value}`
+    });
+
+    // Store the successor's value
+    const successorValue = successor.value;
+
+    // Delete the successor (it's guaranteed to have at most one child)
+    if (successorParent === node) {
+      node.right = successor.right;
+    } else {
+      successorParent.left = successor.right;
+    }
+
+    // Replace the node's value with successor's value
+    node.value = successorValue;
+    animations.push({
+      type: 'compare',
+      nodes: [node],
+      message: `Replaced ${value} with successor ${successorValue}`
+    });
+
     return node;
   }
 
