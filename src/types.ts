@@ -7,6 +7,11 @@ export interface BSTNode {
   state?: 'default' | 'highlight' | 'compare' | 'found' | 'notFound';
 }
 
+export interface AVLNode extends BSTNode {
+  height: number;
+  balanceFactor: number;
+}
+
 export interface TreeData {
   nodes: BSTNode[];
   links: {
@@ -16,7 +21,24 @@ export interface TreeData {
 }
 
 export interface AnimationStep {
-  type: 'highlight' | 'compare' | 'insert' | 'found' | 'notFound' | 'clear';
+  type: 'highlight' | 'compare' | 'found' | 'notFound' | 'insert' | 'clear' | 
+        'rotate' | 'rotate-prep' | 'rotate-complete';
   nodes: BSTNode[];
   message: string;
+}
+
+export interface TreeVisualizationProps {
+  data: TreeData;
+  animations: AnimationStep[];
+  animationSpeed?: number;
+  showBalanceFactors?: boolean;
+}
+
+export interface BaseTree {
+  insert(value: number): AnimationStep[];
+  delete(value: number): AnimationStep[];
+  search(value: number): AnimationStep[];
+  clear(): AnimationStep[];
+  getTreeData(): TreeData;
+  clone(): BaseTree;
 } 

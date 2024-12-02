@@ -3,6 +3,11 @@ import styled from 'styled-components';
 import { TreeVisualization } from './components/TreeVisualization';
 import { BinarySearchTree } from './trees/BinarySearchTree';
 import { TreeData, AnimationStep } from './types';
+import { TreeTypeSwitcher } from './components/TreeTypeSwitcher';
+import { AVLVisualization } from './components/AVLVisualization';
+import { AVLTree } from './trees/AVLTree';
+import { TreeType } from './components/TreeTypeSwitcher';
+import { BaseTree } from './types';
 
 const AppContainer = styled.div`
   display: flex;
@@ -147,7 +152,7 @@ const VisualizationContainer = styled.div`
 `;
 
 interface TreeState {
-  tree: BinarySearchTree;
+  tree: BaseTree;
   data: TreeData;
   animations: AnimationStep[];
 }
@@ -155,12 +160,13 @@ interface TreeState {
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [history, setHistory] = useState<TreeState[]>([{
-    tree: new BinarySearchTree(),
+    tree: new BinarySearchTree() as BaseTree,
     data: new BinarySearchTree().getTreeData(),
     animations: []
   }]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [searchResult, setSearchResult] = useState<number | null>(null);
+  const [treeType, setTreeType] = useState<TreeType>('BST');
 
   const currentTree = history[currentIndex].tree;
   const currentData = history[currentIndex].data;
@@ -271,10 +277,27 @@ const App: React.FC = () => {
     }
   };
 
+  const handleTreeTypeChange = (newType: TreeType) => {
+    const newTree = newType === 'AVL' ? new AVLTree() : new BinarySearchTree();
+    setTreeType(newType);
+    setHistory([{
+      tree: newTree as BaseTree,
+      data: newTree.getTreeData(),
+      animations: []
+    }]);
+    setCurrentIndex(0);
+    setSearchResult(null);
+    setInputValue('');
+  };
+
   return (
     <AppContainer>
       <Header>
-        <Title>Binary Search Tree Visualization</Title>
+        <Title>Tree Visualization</Title>
+        <TreeTypeSwitcher
+          currentType={treeType}
+          onTypeChange={handleTreeTypeChange}
+        />
       </Header>
 
       <ControlPanel>
@@ -333,11 +356,19 @@ const App: React.FC = () => {
       </ControlPanel>
       
       <VisualizationContainer>
-        <TreeVisualization 
-          data={currentData}
-          animations={history[currentIndex].animations}
-          animationSpeed={800}
-        />
+        {treeType === 'AVL' ? (
+          <AVLVisualization 
+            data={currentData}
+            animations={history[currentIndex].animations}
+            animationSpeed={800}
+          />
+        ) : (
+          <TreeVisualization 
+            data={currentData}
+            animations={history[currentIndex].animations}
+            animationSpeed={1000}
+          />
+        )}
       </VisualizationContainer>
     </AppContainer>
   );
