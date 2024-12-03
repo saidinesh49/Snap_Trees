@@ -234,16 +234,16 @@ const App: React.FC = () => {
   };
 
   const handleClear = () => {
-    const newTree = new BinarySearchTree();
+    const newTree = treeType === 'AVL' ? new AVLTree() : new BinarySearchTree();
     const animations = newTree.clear();
     
     addToHistory({
-      tree: newTree,
+      tree: newTree as BaseTree,
       data: { nodes: [], links: [] },
       animations: [{
         type: 'clear',
         nodes: currentData.nodes,
-        message: 'Clearing all nodes from the tree'
+        message: `Clearing all nodes from the ${treeType} tree`
       }]
     });
     
