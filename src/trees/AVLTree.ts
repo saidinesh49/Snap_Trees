@@ -17,13 +17,21 @@ export class AVLTree implements BaseTree {
   }
 
   private getHeight(node: AVLNode | null): number {
-    return node ? node.height : 0;
+    if (!node) return 0;
+    return node.height;
   }
 
   private updateHeight(node: AVLNode): void {
+    if (!node) return;
+    
+    // Get the height of left and right subtrees
     const leftHeight = this.getHeight(node.left as AVLNode);
     const rightHeight = this.getHeight(node.right as AVLNode);
+    
+    // Update height
     node.height = Math.max(leftHeight, rightHeight) + 1;
+    
+    // Update balance factor (left height - right height)
     node.balanceFactor = leftHeight - rightHeight;
   }
 
@@ -69,6 +77,7 @@ export class AVLTree implements BaseTree {
     const animations: AnimationStep[] = [];
     this.root = this.insertNode(this.root, value, animations);
     this.updateNodePositions();
+    this.updateAllBalanceFactors(this.root);
     return animations;
   }
 
@@ -94,14 +103,19 @@ export class AVLTree implements BaseTree {
     } else if (value > node.value) {
       node.right = this.insertNode(node.right as AVLNode, value, animations);
     } else {
-      return node; // Duplicate values not allowed
+      return node;
     }
 
     this.updateHeight(node);
-
-    // Check balance and rotate if needed
     const balance = node.balanceFactor;
+
     if (Math.abs(balance) > 1) {
+      animations.push({
+        type: 'highlight',
+        nodes: [node],
+        message: `Rebalancing required at node ${node.value} (balance factor: ${balance})`
+      });
+
       if (balance > 1) {
         if (value < (node.left as AVLNode).value) {
           return this.rotateRight(node, animations);
@@ -163,6 +177,7 @@ export class AVLTree implements BaseTree {
     const animations: AnimationStep[] = [];
     this.root = this.deleteNode(this.root, value, animations);
     this.updateNodePositions();
+    this.updateAllBalanceFactors(this.root);
     return animations;
   }
 
@@ -181,8 +196,14 @@ export class AVLTree implements BaseTree {
       node.right = this.deleteNode(node.right as AVLNode, value, animations);
     } else {
       // Node to delete found
+      animations.push({
+        type: 'highlight',
+        nodes: [node],
+        message: `Found node ${node.value} to delete`
+      });
+
+      // Case 1: Leaf node
       if (!node.left && !node.right) {
-        // Case 1: Leaf node
         animations.push({
           type: 'clear',
           nodes: [node],
@@ -191,50 +212,81 @@ export class AVLTree implements BaseTree {
         return null;
       }
 
+      // Case 2: One child
       if (!node.left) {
-        // Case 2a: Only right child
-        const successor = node.right as AVLNode;
+        const rightChild = node.right as AVLNode;
         animations.push({
           type: 'clear',
           nodes: [node],
-          message: `Removing node ${node.value} and replacing with right child ${successor.value}`
+          message: `Replacing node ${node.value} with right child ${rightChild.value}`
         });
-        return successor;
+        return rightChild;
       }
-
+      
       if (!node.right) {
-        // Case 2b: Only left child
-        const successor = node.left as AVLNode;
+        const leftChild = node.left as AVLNode;
         animations.push({
           type: 'clear',
           nodes: [node],
-          message: `Removing node ${node.value} and replacing with left child ${successor.value}`
+          message: `Replacing node ${node.value} with left child ${leftChild.value}`
         });
-        return successor;
+        return leftChild;
       }
 
       // Case 3: Two children
-      const successor = this.findMin(node.right as AVLNode);
+      let successorParent = node;
+      let successor = node.right as AVLNode;
+      
+      // Find the inorder successor (smallest in right subtree)
+      while (successor.left) {
+        successorParent = successor;
+        successor = successor.left as AVLNode;
+      }
+
       animations.push({
         type: 'highlight',
         nodes: [successor],
-        message: `Found successor ${successor.value} for node ${node.value}`
+        message: `Found successor ${successor.value} to replace ${node.value}`
       });
 
-      // Copy successor value to current node
-      node.value = successor.value;
+      // Store the successor's value
+      const successorValue = successor.value;
 
-      // Delete the successor
-      node.right = this.deleteNode(node.right as AVLNode, successor.value, animations);
+      // First handle the successor's removal
+      if (successorParent === node) {
+        // If successor is direct right child
+        animations.push({
+          type: 'clear',
+          nodes: [successor],
+          message: `Removing successor from its original position`
+        });
+        node.right = successor.right;
+      } else {
+        // If successor is deeper in the tree
+        animations.push({
+          type: 'clear',
+          nodes: [successor],
+          message: `Removing successor from its original position`
+        });
+        successorParent.left = successor.right;
+      }
+
+      // Then replace the node's value
+      animations.push({
+        type: 'highlight',
+        nodes: [node],
+        message: `Replacing ${node.value} with ${successorValue}`
+      });
+      node.value = successorValue;
     }
 
-    // Update height and rebalance
     if (!node) return null;
-    
+
+    // Update height and rebalance
     this.updateHeight(node);
     const balance = node.balanceFactor;
 
-    // Left heavy
+    // Handle balancing...
     if (balance > 1) {
       const leftChild = node.left as AVLNode;
       if (this.getHeight(leftChild.left as AVLNode) >= this.getHeight(leftChild.right as AVLNode)) {
@@ -245,7 +297,6 @@ export class AVLTree implements BaseTree {
       }
     }
 
-    // Right heavy
     if (balance < -1) {
       const rightChild = node.right as AVLNode;
       if (this.getHeight(rightChild.right as AVLNode) >= this.getHeight(rightChild.left as AVLNode)) {
@@ -267,7 +318,16 @@ export class AVLTree implements BaseTree {
         nodes: this.getAllNodes(),
         message: 'Clearing tree'
       });
+
       this.root = null;
+
+      animations.push({
+        type: 'highlight',
+        nodes: [],
+        message: 'Tree cleared, ready for new nodes'
+      });
+
+      this.updateNodePositions();
     }
     return animations;
   }
@@ -374,5 +434,16 @@ export class AVLTree implements BaseTree {
       current = current.left as AVLNode;
     }
     return current;
+  }
+
+  private updateAllBalanceFactors(node: AVLNode | null): void {
+    if (!node) return;
+    
+    // Update balance factors of children first
+    this.updateAllBalanceFactors(node.left as AVLNode);
+    this.updateAllBalanceFactors(node.right as AVLNode);
+    
+    // Then update this node's balance factor
+    this.updateHeight(node);
   }
 } 
