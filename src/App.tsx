@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { TreeVisualization } from './components/TreeVisualization';
 import { BinarySearchTree } from './trees/BinarySearchTree';
@@ -8,6 +8,9 @@ import { AVLVisualization } from './components/AVLVisualization';
 import { AVLTree } from './trees/AVLTree';
 import { TreeType } from './components/TreeTypeSwitcher';
 import { BaseTree } from './types';
+import { BTreeVisualization } from './components/BTreeVisualization';
+import { BTree } from './trees/BTree';
+import { BTreeData } from './types/BTreeTypes';
 
 const AppContainer = styled.div`
   display: flex;
@@ -153,20 +156,22 @@ const VisualizationContainer = styled.div`
 
 interface TreeState {
   tree: BaseTree;
-  data: TreeData;
+  data: TreeData | BTreeData;
   animations: AnimationStep[];
 }
 
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [history, setHistory] = useState<TreeState[]>([{
-    tree: new BinarySearchTree() as BaseTree,
+    tree: new BinarySearchTree(),
     data: new BinarySearchTree().getTreeData(),
     animations: []
   }]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [searchResult, setSearchResult] = useState<number | null>(null);
   const [treeType, setTreeType] = useState<TreeType>('BST');
+  const [btreeDegree, setBtreeDegree] = useState(3);
+  const [popupMessage, setPopupMessage] = useState<string | null>(null);
 
   const currentTree = history[currentIndex].tree;
   const currentData = history[currentIndex].data;
@@ -178,7 +183,8 @@ const App: React.FC = () => {
     setCurrentIndex(currentIndex + 1);
   };
 
-  const handleInsert = () => {
+  const handleInsert = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const value = parseInt(inputValue);
     if (isNaN(value)) return;
 
@@ -193,7 +199,8 @@ const App: React.FC = () => {
     setSearchResult(null);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const value = parseInt(inputValue);
     if (isNaN(value)) return;
 
@@ -218,13 +225,25 @@ const App: React.FC = () => {
     setSearchResult(null);
   };
 
-  const handleSearch = () => {
+  const handleSearch = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const value = parseInt(inputValue);
     if (isNaN(value)) return;
 
     const animations = currentTree.search(value);
     setSearchResult(value);
     setInputValue('');
+    
+    const isFound = animations.some(anim => anim.type === 'found');
+    if (isFound) {
+      setPopupMessage(`Found ${value}!`);
+    } else {
+      setPopupMessage(`${value} not found in tree`);
+    }
+
+    setTimeout(() => {
+      setPopupMessage(null);
+    }, 2000);
     
     addToHistory({
       tree: currentTree.clone(),
@@ -234,15 +253,19 @@ const App: React.FC = () => {
   };
 
   const handleClear = () => {
-    const newTree = treeType === 'AVL' ? new AVLTree() : new BinarySearchTree();
+    const newTree = 
+      treeType === 'AVL' ? new AVLTree() :
+      treeType === 'BTree' ? new BTree(btreeDegree) :
+      new BinarySearchTree();
+
     const animations = newTree.clear();
     
     addToHistory({
-      tree: newTree as BaseTree,
-      data: { nodes: [], links: [] },
+      tree: newTree,
+      data: newTree.getTreeData(),
       animations: [{
         type: 'clear',
-        nodes: currentData.nodes,
+        nodes: [],
         message: `Clearing all nodes from the ${treeType} tree`
       }]
     });
@@ -265,6 +288,7 @@ const App: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
     const value = e.target.value;
     if (value === '' || /^-?\d+$/.test(value)) {
       setInputValue(value);
@@ -277,11 +301,16 @@ const App: React.FC = () => {
     }
   };
 
-  const handleTreeTypeChange = (newType: TreeType) => {
-    const newTree = newType === 'AVL' ? new AVLTree() : new BinarySearchTree();
+  const handleTreeTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newType = e.target.value as TreeType;
+    const newTree = 
+      newType === 'AVL' ? new AVLTree() :
+      newType === 'BTree' ? new BTree(btreeDegree) :
+      new BinarySearchTree();
+    
     setTreeType(newType);
     setHistory([{
-      tree: newTree as BaseTree,
+      tree: newTree,
       data: newTree.getTreeData(),
       animations: []
     }]);
@@ -290,14 +319,95 @@ const App: React.FC = () => {
     setInputValue('');
   };
 
+  const isBTreeData = (data: TreeData | BTreeData): data is BTreeData => {
+    return 'keys' in (data.nodes[0] || {});
+  };
+
+  const convertToBTreeData = (data: TreeData | BTreeData): BTreeData => {
+    if (treeType !== 'BTree') return { nodes: [], links: [] };
+
+    const tree = history[currentIndex].tree;
+    if (tree instanceof BTree) {
+      return tree.getBTreeData();
+    }
+
+    return { nodes: [], links: [] };
+  };
+
+  const resetTreeStates = () => {
+    const newTree = currentTree.clone();
+    if (treeType === 'BTree' && newTree instanceof BTree) {
+      const btreeData = newTree.getBTreeData();
+      btreeData.nodes.forEach(node => {
+        node.state = 'default';
+        node.foundKey = undefined;
+      });
+      
+      addToHistory({
+        tree: newTree,
+        data: newTree.getTreeData(),
+        animations: []
+      });
+    }
+    setSearchResult(null);
+  };
+
+  useEffect(() => {
+    const handleDocumentClick = () => {
+      resetTreeStates();
+    };
+
+    document.addEventListener('click', handleDocumentClick);
+
+    return () => {
+      document.removeEventListener('click', handleDocumentClick);
+    };
+  }, [currentTree, treeType]);
+
   return (
-    <AppContainer>
+    <AppContainer onClick={(e: React.MouseEvent) => e.stopPropagation()}>
       <Header>
         <Title>Tree Visualization</Title>
-        <TreeTypeSwitcher
-          currentType={treeType}
-          onTypeChange={handleTreeTypeChange}
-        />
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <select 
+            value={treeType} 
+            onChange={handleTreeTypeChange}
+            style={{ padding: '8px', borderRadius: '4px' }}
+          >
+            <option value="BST">Binary Search Tree</option>
+            <option value="AVL">AVL Tree</option>
+            <option value="BTree">B-Tree</option>
+          </select>
+          
+          {treeType === 'BTree' && (
+            <>
+              <label>Degree:</label>
+              <select
+                value={btreeDegree}
+                onChange={(e) => {
+                  const newDegree = parseInt(e.target.value);
+                  setBtreeDegree(newDegree);
+                  const newTree = new BTree(newDegree);
+                  setHistory([{
+                    tree: newTree,
+                    data: newTree.getTreeData(),
+                    animations: []
+                  }]);
+                  setCurrentIndex(0);
+                  setSearchResult(null);
+                  setInputValue('');
+                }}
+                style={{ padding: '8px', borderRadius: '4px' }}
+              >
+                {[3, 4, 5, 6, 7].map(degree => (
+                  <option key={degree} value={degree}>
+                    {degree}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+        </div>
       </Header>
 
       <ControlPanel>
@@ -306,22 +416,28 @@ const App: React.FC = () => {
             type="text"
             value={inputValue}
             onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
+            onKeyPress={(e: React.KeyboardEvent) => {
+              e.stopPropagation();
+              if (e.key === 'Enter') {
+                handleInsert();
+              }
+            }}
             placeholder="Enter a number"
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           />
-          <Button onClick={handleInsert}>
+          <Button onClick={(e: React.MouseEvent) => handleInsert(e)}>
             Insert
           </Button>
           <Button 
             variant="danger" 
-            onClick={handleDelete}
+            onClick={(e: React.MouseEvent) => handleDelete(e)}
             disabled={!inputValue}
           >
             Delete
           </Button>
           <Button 
             variant="success"
-            onClick={handleSearch}
+            onClick={(e: React.MouseEvent) => handleSearch(e)}
             disabled={!inputValue}
           >
             Search
@@ -356,22 +472,60 @@ const App: React.FC = () => {
       </ControlPanel>
       
       <VisualizationContainer>
-        {treeType === 'AVL' ? (
+        {treeType === 'BTree' ? (
+          <BTreeVisualization 
+            data={isBTreeData(currentData) ? currentData : convertToBTreeData(currentData)}
+            animations={history[currentIndex].animations}
+            animationSpeed={800}
+            onReset={resetTreeStates}
+          />
+        ) : treeType === 'AVL' ? (
           <AVLVisualization 
-            data={currentData}
+            data={currentData as TreeData}
             animations={history[currentIndex].animations}
             animationSpeed={800}
           />
         ) : (
           <TreeVisualization 
-            data={currentData}
+            data={currentData as TreeData}
             animations={history[currentIndex].animations}
             animationSpeed={1000}
           />
         )}
       </VisualizationContainer>
+
+      {popupMessage && (
+        <PopupMessage>
+          {popupMessage}
+        </PopupMessage>
+      )}
     </AppContainer>
   );
 };
+
+const PopupMessage = styled.div`
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -20px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+`;
 
 export default App;

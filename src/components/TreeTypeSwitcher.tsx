@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { BTreeVisualization } from './BTreeVisualization';
 
 const SwitcherContainer = styled.div`
   display: flex;
