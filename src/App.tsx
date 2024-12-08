@@ -260,6 +260,30 @@ const VisualizationContainer = styled.div`
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   overflow: hidden;
   position: relative;
+  min-height: 500px;
+
+  @media (max-width: 768px) {
+    min-height: 400px;
+    height: calc(100vh - 300px);
+    margin: 0 -16px;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  svg {
+    width: 100%;
+    height: 100%;
+    
+    @media (max-width: 768px) {
+      transform-origin: center center;
+      transform: scale(0.8);
+    }
+  }
+
+  /* Add transition for smooth clearing */
+  transition: all 0.3s ease-out;
 `;
 
 interface TreeState {
@@ -369,15 +393,17 @@ const MainApp: React.FC = () => {
     const animations = newTree.clear();
     
     addToHistory({
+      tree: currentTree.clone(),
+      data: currentTree.getTreeData(),
+      animations
+    });
+
+    addToHistory({
       tree: newTree,
       data: newTree.getTreeData(),
-      animations: [{
-        type: 'clear',
-        nodes: [],
-        message: `Clearing all nodes from the ${treeType} tree`
-      }]
+      animations: []
     });
-    
+
     setSearchResult(null);
   };
 

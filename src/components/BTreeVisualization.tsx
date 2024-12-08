@@ -54,26 +54,26 @@ export const BTreeVisualization: FC<Props> = ({ data, animations, animationSpeed
 
     // Draw node rectangles
     nodeGroups.append('rect')
-      .attr('width', d => d.keys.length * 30 + 20)
+      .attr('width', d => Math.max(d.keys.length * 40 + 20, 60))
       .attr('height', 30)
-      .attr('x', d => -(d.keys.length * 30 + 20) / 2)
+      .attr('x', d => -(d.keys.length * 40 + 20) / 2)
       .attr('y', -15)
       .attr('rx', 5)
       .attr('ry', 5)
       .attr('fill', d => {
         switch (d.state) {
-          case 'notFound': return '#ffebee';  // Light red background
-          case 'path': return '#e8f5e9';      // Light green for path
-          case 'highlight': return '#e8f5e9';  // Light green for current path
-          default: return '#fff';              // White default
+          case 'notFound': return '#ffebee';
+          case 'path': return '#e8f5e9';
+          case 'highlight': return '#e8f5e9';
+          default: return '#fff';
         }
       })
       .attr('stroke', d => {
         switch (d.state) {
-          case 'notFound': return '#f44336';  // Red border
-          case 'path': return '#4caf50';      // Green border for path
-          case 'highlight': return '#4caf50';  // Green border for current
-          default: return '#000';             // Black default
+          case 'notFound': return '#f44336';
+          case 'path': return '#4caf50';
+          case 'highlight': return '#4caf50';
+          default: return '#000';
         }
       })
       .attr('stroke-width', 1);
@@ -81,15 +81,18 @@ export const BTreeVisualization: FC<Props> = ({ data, animations, animationSpeed
     // Draw keys with state-based colors
     nodeGroups.each(function(d) {
       const node = d3.select(this);
+      const keyWidth = 40;
+      const startX = -(d.keys.length * keyWidth) / 2 + keyWidth / 2;
+      
       d.keys.forEach((key, i) => {
         node.append('text')
-          .attr('x', (i - (d.keys.length - 1) / 2) * 30)
+          .attr('x', startX + i * keyWidth)
           .attr('y', 5)
           .attr('text-anchor', 'middle')
           .attr('fill', () => {
-            if (d.state === 'notFound') return '#f44336';  // Red text
-            if (d.state === 'found' && d.foundKey === key) return '#4caf50';  // Green text for found key
-            return '#000';  // Black default
+            if (d.state === 'notFound') return '#f44336';
+            if (d.state === 'found' && d.foundKey === key) return '#4caf50';
+            return '#000';
           })
           .attr('font-weight', (d.state === 'found' && d.foundKey === key) ? 'bold' : 'normal')
           .text(key);
