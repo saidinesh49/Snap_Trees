@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { TreeVisualization } from './components/TreeVisualization';
 import { BinarySearchTree } from './trees/BinarySearchTree';
 import { TreeData, AnimationStep } from './types';
@@ -11,6 +12,10 @@ import { BaseTree } from './types';
 import { BTreeVisualization } from './components/BTreeVisualization';
 import { BTree } from './trees/BTree';
 import { BTreeData } from './types/BTreeTypes';
+import { Concepts } from './components/concepts/Concepts';
+import { BSTConcept } from './components/concepts/BSTConcept';
+import { AVLConcept } from './components/concepts/AVLConcept';
+import { BTreeConcept } from './components/concepts/BTreeConcept';
 
 const AppContainer = styled.div`
   display: flex;
@@ -26,12 +31,115 @@ const Header = styled.header`
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+`;
+
+const HeaderControls = styled.div`
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  margin-left: auto;
+  padding-right: 16px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
+    gap: 16px;
+    padding-right: 0;
+  }
+`;
+
+const SelectContainer = styled.div`
+  display: flex;
+  gap: 16px;
+  align-items: center;
+
+  select {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 150px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #4dabf7;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #4dabf7;
+      box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2);
+    }
+  }
+
+  label {
+    color: #495057;
+    font-weight: 500;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+    }
+  }
 `;
 
 const Title = styled.h1`
   margin: 0;
   font-size: 24px;
   color: #1a1a1a;
+`;
+
+const ConceptLink = styled(Link)`
+  color: #4dabf7;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(77, 171, 247, 0.1);
+    transform: translateX(4px);
+  }
+
+  svg {
+    transition: transform 0.2s;
+  }
+
+  &:hover svg {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    font-size: 16px;
+    background: rgba(77, 171, 247, 0.1);
+  }
 `;
 
 const ControlPanel = styled.div`
@@ -160,7 +268,7 @@ interface TreeState {
   animations: AnimationStep[];
 }
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [history, setHistory] = useState<TreeState[]>([{
     tree: new BinarySearchTree(),
@@ -368,46 +476,52 @@ const App: React.FC = () => {
     <AppContainer onClick={(e: React.MouseEvent) => e.stopPropagation()}>
       <Header>
         <Title>Tree Visualization</Title>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <select 
-            value={treeType} 
-            onChange={handleTreeTypeChange}
-            style={{ padding: '8px', borderRadius: '4px' }}
-          >
-            <option value="BST">Binary Search Tree</option>
-            <option value="AVL">AVL Tree</option>
-            <option value="BTree">B-Tree</option>
-          </select>
-          
-          {treeType === 'BTree' && (
-            <>
-              <label>Degree:</label>
-              <select
-                value={btreeDegree}
-                onChange={(e) => {
-                  const newDegree = parseInt(e.target.value);
-                  setBtreeDegree(newDegree);
-                  const newTree = new BTree(newDegree);
-                  setHistory([{
-                    tree: newTree,
-                    data: newTree.getTreeData(),
-                    animations: []
-                  }]);
-                  setCurrentIndex(0);
-                  setSearchResult(null);
-                  setInputValue('');
-                }}
-                style={{ padding: '8px', borderRadius: '4px' }}
-              >
-                {[3, 4, 5, 6, 7].map(degree => (
-                  <option key={degree} value={degree}>
-                    {degree}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
-        </div>
+        <HeaderControls>
+          <SelectContainer>
+            <select 
+              value={treeType} 
+              onChange={handleTreeTypeChange}
+            >
+              <option value="BST">Binary Search Tree</option>
+              <option value="AVL">AVL Tree</option>
+              <option value="BTree">B-Tree</option>
+            </select>
+            
+            {treeType === 'BTree' && (
+              <>
+                <label>Degree:</label>
+                <select
+                  value={btreeDegree}
+                  onChange={(e) => {
+                    const newDegree = parseInt(e.target.value);
+                    setBtreeDegree(newDegree);
+                    const newTree = new BTree(newDegree);
+                    setHistory([{
+                      tree: newTree,
+                      data: newTree.getTreeData(),
+                      animations: []
+                    }]);
+                    setCurrentIndex(0);
+                    setSearchResult(null);
+                    setInputValue('');
+                  }}
+                >
+                  {[3, 4, 5, 6, 7].map(degree => (
+                    <option key={degree} value={degree}>
+                      {degree}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+          </SelectContainer>
+          <ConceptLink to="/concept">
+            Explore Concepts
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
+              <path d="M5 12h14M12 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </ConceptLink>
+        </HeaderControls>
       </Header>
 
       <ControlPanel>
@@ -527,5 +641,19 @@ const PopupMessage = styled.div`
     }
   }
 `;
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainApp />} />
+        <Route path="/concept" element={<Concepts />} />
+        <Route path="/concept/BST" element={<BSTConcept />} />
+        <Route path="/concept/AVL" element={<AVLConcept />} />
+        <Route path="/concept/BTree" element={<BTreeConcept />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;
