@@ -130,16 +130,17 @@ export class BinarySearchTree {
     const animations: AnimationStep[] = [];
     
     if (this.root) {
+      // Get all nodes for clear animation
       const nodes = this.getAllNodes();
       animations.push({
         type: 'clear',
         nodes: nodes,
         message: 'Clearing all nodes from the tree'
       });
-      
-      // Actually clear the tree
-      this.root = null;
     }
+    
+    // Actually clear the tree
+    this.root = null;
     
     return animations;
   }

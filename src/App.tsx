@@ -390,7 +390,7 @@ const MainApp: React.FC = () => {
       treeType === 'BTree' ? new BTree(btreeDegree) :
       new BinarySearchTree();
 
-    const animations = newTree.clear();
+    const animations = currentTree.clear();
     
     addToHistory({
       tree: currentTree.clone(),
@@ -398,12 +398,14 @@ const MainApp: React.FC = () => {
       animations
     });
 
-    addToHistory({
-      tree: newTree,
-      data: newTree.getTreeData(),
-      animations: []
-    });
-
+    setTimeout(() => {
+      addToHistory({
+        tree: newTree,
+        data: newTree.getTreeData(),
+        animations: []
+      });
+    }, animations.length * 800);
+    
     setSearchResult(null);
   };
 

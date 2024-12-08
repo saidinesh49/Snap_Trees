@@ -312,23 +312,20 @@ export class AVLTree implements BaseTree {
 
   clear(): AnimationStep[] {
     const animations: AnimationStep[] = [];
+    
     if (this.root) {
+      // Get all nodes for clear animation
+      const nodes = this.getAllNodes();
       animations.push({
         type: 'clear',
-        nodes: this.getAllNodes(),
-        message: 'Clearing tree'
+        nodes: nodes,
+        message: 'Clearing all nodes from the tree'
       });
-
-      this.root = null;
-
-      animations.push({
-        type: 'highlight',
-        nodes: [],
-        message: 'Tree cleared, ready for new nodes'
-      });
-
-      this.updateNodePositions();
     }
+    
+    // Actually clear the tree
+    this.root = null;
+    
     return animations;
   }
 
