@@ -535,7 +535,7 @@ export class BTree implements BaseTree {
     const rightChild = node.children[keyIndex + 1];
 
     // First try to get replacement from left child's rightmost key
-    if (leftChild.keys.length > this.halfNumber) {
+    if (leftChild.keys.length >= this.halfNumber) {
       // Find rightmost key in left subtree
       let replacementNode = leftChild;
       let replacementParent = node;
@@ -545,53 +545,133 @@ export class BTree implements BaseTree {
         replacementNode = replacementNode.children[replacementNode.children.length - 1];
       }
 
+      // Store the replacement key and original key
       const replacementKey = replacementNode.keys[replacementNode.keys.length - 1];
-      
+      const originalKey = node.keys[keyIndex];
+
       // Replace the key in internal node
       node.keys[keyIndex] = replacementKey;
       animations.push({
         type: 'highlight',
         nodes: [node, replacementNode],
-        message: `Replaced ${value} with ${replacementKey} from left subtree`
+        message: `Replaced ${originalKey} with ${replacementKey} from left subtree`
       });
 
-      // Remove the replacement key
+      // Remove the replacement key from its original position
       replacementNode.keys.pop();
       this.treeSize--;
 
-      // Handle any violation in the replacement node
+      // If replacement node now violates minimum keys
       if (replacementNode.keys.length < this.halfNumber) {
         const nodeIndex = replacementParent.children.indexOf(replacementNode);
         let balanced = false;
 
-        // Try borrowing from siblings
+        // Try borrowing from siblings first
         if (nodeIndex > 0) {
           const leftSibling = replacementParent.children[nodeIndex - 1];
           if (leftSibling.keys.length > this.halfNumber) {
-            this.borrowFromLeftSibling(replacementNode, leftSibling, replacementParent, nodeIndex, animations);
+            // Borrow and preserve subtree
+            const borrowedKey = leftSibling.keys.pop()!;
+            const parentKey = replacementParent.keys[nodeIndex - 1];
+            
+            replacementNode.keys.unshift(parentKey);
+            replacementParent.keys[nodeIndex - 1] = borrowedKey;
+
+            // Handle children if not leaf nodes
+            if (!replacementNode.isLeaf) {
+              const childToMove = leftSibling.children.pop()!;
+              replacementNode.children.unshift(childToMove);
+              childToMove.father = replacementNode;
+            }
+
             balanced = true;
+            animations.push({
+              type: 'highlight',
+              nodes: [replacementNode, leftSibling, replacementParent],
+              message: `Borrowed ${borrowedKey} from left sibling`
+            });
           }
         }
 
         if (!balanced && nodeIndex < replacementParent.children.length - 1) {
           const rightSibling = replacementParent.children[nodeIndex + 1];
           if (rightSibling.keys.length > this.halfNumber) {
-            this.borrowFromRightSibling(replacementNode, rightSibling, replacementParent, nodeIndex, animations);
+            // Borrow and preserve subtree
+            const borrowedKey = rightSibling.keys.shift()!;
+            const parentKey = replacementParent.keys[nodeIndex];
+            
+            replacementNode.keys.push(parentKey);
+            replacementParent.keys[nodeIndex] = borrowedKey;
+
+            // Handle children if not leaf nodes
+            if (!replacementNode.isLeaf) {
+              const childToMove = rightSibling.children.shift()!;
+              replacementNode.children.push(childToMove);
+              childToMove.father = replacementNode;
+            }
+
             balanced = true;
+            animations.push({
+              type: 'highlight',
+              nodes: [replacementNode, rightSibling, replacementParent],
+              message: `Borrowed ${borrowedKey} from right sibling`
+            });
           }
         }
 
-        // If borrowing not possible, merge and handle cascading effects
+        // If borrowing not possible, merge with a sibling
         if (!balanced) {
-          let currentNode = replacementNode;
+          let mergedNode: BTreeNode;
           if (nodeIndex > 0) {
-            currentNode = this.mergeWithLeftSibling(currentNode, animations);
+            // Merge with left sibling
+            const leftSibling = replacementParent.children[nodeIndex - 1];
+            const parentKey = replacementParent.keys[nodeIndex - 1];
+
+            // Preserve all keys and children
+            leftSibling.keys.push(parentKey);
+            leftSibling.keys.push(...replacementNode.keys);
+
+            if (!leftSibling.isLeaf) {
+              leftSibling.children.push(...replacementNode.children);
+              replacementNode.children.forEach(child => child.father = leftSibling);
+            }
+
+            // Remove from parent
+            replacementParent.keys.splice(nodeIndex - 1, 1);
+            replacementParent.children.splice(nodeIndex, 1);
+
+            mergedNode = leftSibling;
           } else {
-            currentNode = this.mergeWithRightSibling(currentNode, animations);
+            // Merge with right sibling
+            const rightSibling = replacementParent.children[nodeIndex + 1];
+            const parentKey = replacementParent.keys[nodeIndex];
+
+            // Preserve all keys and children
+            replacementNode.keys.push(parentKey);
+            replacementNode.keys.push(...rightSibling.keys);
+
+            if (!replacementNode.isLeaf) {
+              replacementNode.children.push(...rightSibling.children);
+              rightSibling.children.forEach(child => child.father = replacementNode);
+            }
+
+            // Remove from parent
+            replacementParent.keys.splice(nodeIndex, 1);
+            replacementParent.children.splice(nodeIndex + 1, 1);
+
+            mergedNode = replacementNode;
           }
 
-          // Handle cascading effects up to root
-          this.handleCascadingMerges(currentNode, animations);
+          animations.push({
+            type: 'highlight',
+            nodes: [mergedNode, replacementParent],
+            message: 'Merged nodes after replacement'
+          });
+
+          // Handle cascading effects
+          if (replacementParent !== this.root && replacementParent.keys.length < this.halfNumber) {
+            this.handleCascadingMerges(replacementParent, animations);
+          }
         }
       }
       return;
@@ -1127,96 +1207,172 @@ export class BTree implements BaseTree {
       return true;
     }
 
-    // First try left subtree's rightmost element
-    let predecessor = this.root.children[keyIndex];
-    let predecessorParent = this.root;
+    // Get left and right children of the key to be deleted
+    const leftChild = this.root.children[keyIndex];
+    const rightChild = this.root.children[keyIndex + 1];
+
+    // First try to get replacement from left child's rightmost path
+    let replacementNode = leftChild;
+    let replacementParent = this.root;
     
     // Find rightmost element in left subtree
-    while (!predecessor.isLeaf) {
-      predecessorParent = predecessor;
-      predecessor = predecessor.children[predecessor.children.length - 1];
+    while (!replacementNode.isLeaf) {
+      replacementParent = replacementNode;
+      replacementNode = replacementNode.children[replacementNode.children.length - 1];
     }
 
     // Get the rightmost key
-    const predKey = predecessor.keys[predecessor.keys.length - 1];
+    const replacementKey = replacementNode.keys[replacementNode.keys.length - 1];
     
-    // Replace root's key with predecessor
-    const originalValue = this.root.keys[keyIndex];
-    this.root.keys[keyIndex] = predKey;
+    // Replace root's key with the replacement
+    this.root.keys[keyIndex] = replacementKey;
     
     animations.push({
       type: 'highlight',
-      nodes: [this.root, predecessor],
-      message: `Replaced root key ${originalValue} with predecessor ${predKey}`
+      nodes: [this.root, replacementNode],
+      message: `Replaced root key ${value} with ${replacementKey}`
     });
 
-    // Remove predecessor key
-    predecessor.keys.pop();
+    // Remove the replacement key from its original position
+    replacementNode.keys.pop();
     this.treeSize--;
 
-    // If predecessor now violates minimum keys, handle it
-    if (predecessor.keys.length < this.halfNumber) {
-      // Try borrowing from immediate siblings first
-      const predIndex = predecessorParent.children.indexOf(predecessor);
-      let borrowed = false;
+    // If replacement node now violates minimum keys
+    if (replacementNode.keys.length < this.halfNumber) {
+      const nodeIndex = replacementParent.children.indexOf(replacementNode);
+      let balanced = false;
 
-      // Try left sibling
-      if (predIndex > 0) {
-        const leftSibling = predecessorParent.children[predIndex - 1];
+      // Try borrowing from siblings first
+      if (nodeIndex > 0) {
+        const leftSibling = replacementParent.children[nodeIndex - 1];
         if (leftSibling.keys.length > this.halfNumber) {
-          this.borrowFromLeftSibling(predecessor, leftSibling, predecessorParent, predIndex, animations);
-          borrowed = true;
+          // Borrow from left sibling
+          const borrowedKey = leftSibling.keys.pop()!;
+          const parentKey = replacementParent.keys[nodeIndex - 1];
+          
+          replacementNode.keys.unshift(parentKey);
+          replacementParent.keys[nodeIndex - 1] = borrowedKey;
+
+          // Handle children if not leaf nodes
+          if (!replacementNode.isLeaf) {
+            const childToMove = leftSibling.children.pop()!;
+            replacementNode.children.unshift(childToMove);
+            childToMove.father = replacementNode;
+          }
+
+          balanced = true;
+          animations.push({
+            type: 'highlight',
+            nodes: [replacementNode, leftSibling, replacementParent],
+            message: `Borrowed ${borrowedKey} from left sibling`
+          });
         }
       }
 
-      // Try right sibling
-      if (!borrowed && predIndex < predecessorParent.children.length - 1) {
-        const rightSibling = predecessorParent.children[predIndex + 1];
+      if (!balanced && nodeIndex < replacementParent.children.length - 1) {
+        const rightSibling = replacementParent.children[nodeIndex + 1];
         if (rightSibling.keys.length > this.halfNumber) {
-          this.borrowFromRightSibling(predecessor, rightSibling, predecessorParent, predIndex, animations);
-          borrowed = true;
+          // Borrow from right sibling
+          const borrowedKey = rightSibling.keys.shift()!;
+          const parentKey = replacementParent.keys[nodeIndex];
+          
+          replacementNode.keys.push(parentKey);
+          replacementParent.keys[nodeIndex] = borrowedKey;
+
+          // Handle children if not leaf nodes
+          if (!replacementNode.isLeaf) {
+            const childToMove = rightSibling.children.shift()!;
+            replacementNode.children.push(childToMove);
+            childToMove.father = replacementNode;
+          }
+
+          balanced = true;
+          animations.push({
+            type: 'highlight',
+            nodes: [replacementNode, rightSibling, replacementParent],
+            message: `Borrowed ${borrowedKey} from right sibling`
+          });
         }
       }
 
       // If borrowing not possible, merge
-      if (!borrowed) {
-        let currentNode = predecessor;
-        if (predIndex > 0) {
-          currentNode = this.mergeWithLeftSibling(currentNode, animations);
+      if (!balanced) {
+        let currentNode = replacementNode;
+        
+        // Merge with appropriate sibling
+        if (nodeIndex > 0) {
+          const leftSibling = replacementParent.children[nodeIndex - 1];
+          const parentKey = replacementParent.keys[nodeIndex - 1];
+
+          // Preserve all keys and children
+          leftSibling.keys.push(parentKey);
+          leftSibling.keys.push(...currentNode.keys);
+
+          if (!leftSibling.isLeaf) {
+            leftSibling.children.push(...currentNode.children);
+            currentNode.children.forEach(child => child.father = leftSibling);
+          }
+
+          // Remove from parent
+          replacementParent.keys.splice(nodeIndex - 1, 1);
+          replacementParent.children.splice(nodeIndex, 1);
+
+          currentNode = leftSibling;
         } else {
-          currentNode = this.mergeWithRightSibling(currentNode, animations);
+          const rightSibling = replacementParent.children[nodeIndex + 1];
+          const parentKey = replacementParent.keys[nodeIndex];
+
+          // Preserve all keys and children
+          currentNode.keys.push(parentKey);
+          currentNode.keys.push(...rightSibling.keys);
+
+          if (!currentNode.isLeaf) {
+            currentNode.children.push(...rightSibling.children);
+            rightSibling.children.forEach(child => child.father = currentNode);
+          }
+
+          // Remove from parent
+          replacementParent.keys.splice(nodeIndex, 1);
+          replacementParent.children.splice(nodeIndex + 1, 1);
         }
 
-        // Handle cascading effects
-        while (currentNode !== this.root && currentNode.keys.length < this.halfNumber) {
+        animations.push({
+          type: 'highlight',
+          nodes: [currentNode, replacementParent],
+          message: 'Merged nodes after replacement'
+        });
+
+        // Handle cascading effects up to root
+        while (replacementParent !== this.root && replacementParent.keys.length < this.halfNumber) {
+          currentNode = replacementParent;
           const parent = currentNode.father!;
-          const nodeIndex = parent.children.indexOf(currentNode);
-          borrowed = false;
+          const currentIndex = parent.children.indexOf(currentNode);
+          balanced = false;
 
           // Try borrowing at each level
-          if (nodeIndex > 0) {
-            const leftSibling = parent.children[nodeIndex - 1];
+          if (currentIndex > 0) {
+            const leftSibling = parent.children[currentIndex - 1];
             if (leftSibling.keys.length > this.halfNumber) {
-              this.borrowFromLeftSibling(currentNode, leftSibling, parent, nodeIndex, animations);
-              borrowed = true;
+              this.borrowFromLeftSibling(currentNode, leftSibling, parent, currentIndex, animations);
+              balanced = true;
             }
           }
 
-          if (!borrowed && nodeIndex < parent.children.length - 1) {
-            const rightSibling = parent.children[nodeIndex + 1];
+          if (!balanced && currentIndex < parent.children.length - 1) {
+            const rightSibling = parent.children[currentIndex + 1];
             if (rightSibling.keys.length > this.halfNumber) {
-              this.borrowFromRightSibling(currentNode, rightSibling, parent, nodeIndex, animations);
-              borrowed = true;
+              this.borrowFromRightSibling(currentNode, rightSibling, parent, currentIndex, animations);
+              balanced = true;
             }
           }
 
-          if (!borrowed) {
-            if (nodeIndex > 0) {
+          if (!balanced) {
+            if (currentIndex > 0) {
               currentNode = this.mergeWithLeftSibling(currentNode, animations);
             } else {
               currentNode = this.mergeWithRightSibling(currentNode, animations);
             }
-            currentNode = parent;
+            replacementParent = parent;
           } else {
             break;
           }
