@@ -115,6 +115,19 @@ export const Concepts: React.FC = () => {
           </LearnMore>
         </ConceptCard>
 
+        <ConceptCard to="/concept/RedBlack">
+          <ConceptTitle>Red-Black Tree</ConceptTitle>
+          <ConceptDescription>
+            A self-balancing binary search tree with one extra bit per node for color, ensuring the tree remains balanced during operations.
+          </ConceptDescription>
+          <LearnMore>
+            Learn More
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">
+              <path d="M5 12h14M12 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </LearnMore>
+        </ConceptCard>
+
         <ConceptCard to="/concept/BTree">
           <ConceptTitle>B-Tree</ConceptTitle>
           <ConceptDescription>
