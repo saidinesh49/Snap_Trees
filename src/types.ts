@@ -4,7 +4,7 @@ export interface BSTNode {
   right: BSTNode | null;
   x: number;
   y: number;
-  state?: 'default' | 'highlight' | 'compare' | 'found' | 'notFound';
+  state?: 'default' | 'highlight' | 'compare' | 'found' | 'notFound' | 'searching' | 'path' | 'success-path';
 }
 
 export interface AVLNode extends BSTNode {
@@ -22,7 +22,7 @@ export interface TreeData {
 
 export interface AnimationStep {
   type: 'highlight' | 'compare' | 'found' | 'notFound' | 'insert' | 'clear' | 
-        'rotate' | 'rotate-prep' | 'rotate-complete';
+        'rotate' | 'rotate-prep' | 'rotate-complete' | 'searching' | 'path' | 'success-path';
   nodes: BSTNode[];
   message: string;
 }

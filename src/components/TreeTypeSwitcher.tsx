@@ -54,7 +54,7 @@ export const TreeTypeSwitcher: React.FC<Props> = ({
   onTypeChange,
   disabled = false
 }) => {
-  const treeTypes: TreeType[] = ['BST', 'AVL'];  // Temporarily only showing BST and AVL
+  const treeTypes: TreeType[] = ['BST', 'AVL', 'RedBlack', 'BTree'];
 
   return (
     <SwitcherContainer>
@@ -65,7 +65,9 @@ export const TreeTypeSwitcher: React.FC<Props> = ({
           onClick={() => !disabled && onTypeChange(type)}
           disabled={disabled}
         >
-          {type === 'BST' ? 'Binary Search Tree' : 'AVL Tree'}
+          {type === 'BST' ? 'Binary Search Tree' : 
+           type === 'AVL' ? 'AVL Tree' :
+           type === 'RedBlack' ? 'Red-Black Tree' : 'B-Tree'}
         </TabButton>
       ))}
     </SwitcherContainer>

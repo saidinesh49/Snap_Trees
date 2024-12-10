@@ -16,6 +16,10 @@ import { Concepts } from './components/concepts/Concepts';
 import { BSTConcept } from './components/concepts/BSTConcept';
 import { AVLConcept } from './components/concepts/AVLConcept';
 import { BTreeConcept } from './components/concepts/BTreeConcept';
+import { RedBlackTree } from './trees/RedBlackTree';
+import { RedBlackVisualization } from './components/RedBlackVisualization';
+import { RBNode } from './types/RedBlackTypes';
+import RedBlackConcept from './components/concepts/RedBlackConcept';
 
 const AppContainer = styled.div`
   display: flex;
@@ -388,6 +392,7 @@ const MainApp: React.FC = () => {
     const newTree = 
       treeType === 'AVL' ? new AVLTree() :
       treeType === 'BTree' ? new BTree(btreeDegree) :
+      treeType === 'RedBlack' ? new RedBlackTree() :
       new BinarySearchTree();
 
     const animations = currentTree.clear();
@@ -442,6 +447,7 @@ const MainApp: React.FC = () => {
     const newTree = 
       newType === 'AVL' ? new AVLTree() :
       newType === 'BTree' ? new BTree(btreeDegree) :
+      newType === 'RedBlack' ? new RedBlackTree() :
       new BinarySearchTree();
     
     setTreeType(newType);
@@ -512,6 +518,7 @@ const MainApp: React.FC = () => {
             >
               <option value="BST">Binary Search Tree</option>
               <option value="AVL">AVL Tree</option>
+              <option value="RedBlack">Red-Black Tree</option>
               <option value="BTree">B-Tree</option>
             </select>
             
@@ -614,7 +621,17 @@ const MainApp: React.FC = () => {
       </ControlPanel>
       
       <VisualizationContainer>
-        {treeType === 'BTree' ? (
+        {treeType === 'RedBlack' ? (
+          <RedBlackVisualization 
+            data={currentTree instanceof RedBlackTree ? 
+              (currentTree as RedBlackTree).getRBTreeData() : 
+              { nodes: [], links: [] }
+            }
+            animations={history[currentIndex].animations}
+            animationSpeed={800}
+            onReset={resetTreeStates}
+          />
+        ) : treeType === 'BTree' ? (
           <BTreeVisualization 
             data={isBTreeData(currentData) ? currentData : convertToBTreeData(currentData)}
             animations={history[currentIndex].animations}
@@ -678,6 +695,7 @@ const App: React.FC = () => {
         <Route path="/concept" element={<Concepts />} />
         <Route path="/concept/BST" element={<BSTConcept />} />
         <Route path="/concept/AVL" element={<AVLConcept />} />
+        <Route path="/concept/RedBlack" element={<RedBlackConcept />} />
         <Route path="/concept/BTree" element={<BTreeConcept />} />
       </Routes>
     </Router>
