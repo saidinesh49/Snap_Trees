@@ -1,11 +1,14 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { colors } from '../../styles/colors';
 
 const Container = styled.div`
   padding: 40px;
   max-width: 1200px;
   margin: 0 auto;
+  background: ${colors.background};
+  min-height: 100vh;
 `;
 
 const Header = styled.header`
@@ -15,23 +18,11 @@ const Header = styled.header`
   align-items: center;
 `;
 
-const BackLink = styled(Link)`
-  color: #4dabf7;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
 const Title = styled.h1`
-  font-size: 32px;
-  color: #1a1a1a;
+  font-size: 36px;
+  color: ${colors.headline};
   margin: 0;
+  font-weight: 700;
 `;
 
 const ConceptGrid = styled.div`
@@ -41,38 +32,73 @@ const ConceptGrid = styled.div`
 `;
 
 const ConceptCard = styled(Link)`
-  padding: 24px;
+  padding: 28px;
   border-radius: 12px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: ${colors.surface};
+  box-shadow: 0 2px 8px ${colors.shadow};
   text-decoration: none;
   color: inherit;
   transition: all 0.2s;
+  border: 1px solid ${colors.borderLight};
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px ${colors.shadowHover};
+    border-color: ${colors.primary};
   }
 `;
 
 const ConceptTitle = styled.h2`
   font-size: 24px;
-  margin: 0 0 16px;
-  color: #1a1a1a;
+  margin: 0 0 12px;
+  color: ${colors.headline};
+  font-weight: 600;
 `;
 
 const ConceptDescription = styled.p`
-  margin: 0 0 16px;
-  color: #666;
-  line-height: 1.5;
+  margin: 0 0 20px;
+  color: ${colors.paragraph};
+  line-height: 1.6;
 `;
 
 const LearnMore = styled.span`
-  color: #4dabf7;
+  color: ${colors.primary};
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  
+  svg {
+    transition: transform 0.2s;
+  }
+
+  ${ConceptCard}:hover & svg {
+    transform: translateX(4px);
+  }
+`;
+
+const BackLink = styled(Link)`
+  color: ${colors.primary};
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background: ${colors.surfaceLight};
+
+  &:hover {
+    background: ${colors.surface};
+    transform: translateX(-4px);
+    box-shadow: 0 2px 8px ${colors.shadow};
+  }
+
+  svg {
+    stroke: ${colors.primary};
+  }
 `;
 
 export const Concepts: React.FC = () => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { colors } from '../../styles/colors';
 
 const Container = styled.div`
   padding: 40px;
@@ -16,7 +17,7 @@ const Header = styled.header`
 `;
 
 const BackLink = styled(Link)`
-  color: #4dabf7;
+  color: ${colors.primary};
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -28,56 +29,60 @@ const BackLink = styled(Link)`
   }
 `;
 
+const Title = styled.h1`
+  font-size: 32px;
+  color: ${colors.headline};
+  margin: 0;
+`;
+
 const Content = styled.div`
-  background: white;
-  border-radius: 12px;
+  background: ${colors.surface};
   padding: 32px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px ${colors.shadow};
 `;
 
 const Section = styled.section`
   margin-bottom: 32px;
 `;
 
-const Title = styled.h1`
-  font-size: 32px;
-  color: #1a1a1a;
-  margin: 0;
-`;
-
 const SubTitle = styled.h2`
   font-size: 24px;
-  color: #1a1a1a;
+  color: ${colors.headline};
   margin: 0 0 16px;
 `;
 
 const Text = styled.p`
-  color: #666;
+  color: ${colors.paragraph};
   line-height: 1.6;
   margin: 0 0 16px;
 `;
 
 const List = styled.ul`
-  color: #666;
+  color: ${colors.paragraph};
   line-height: 1.6;
-  margin: 0 0 16px;
-  padding-left: 20px;
+  margin: 0 0 24px;
+  padding-left: 24px;
+
+  li {
+    margin-bottom: 8px;
+  }
 `;
 
-const CodeBlock = styled.pre`
-  background: #f8f9fa;
-  padding: 16px;
+const Code = styled.pre`
+  background: ${colors.surfaceLight};
+  padding: 20px;
   border-radius: 8px;
   overflow-x: auto;
-  margin: 16px 0;
-  font-family: 'Courier New', Courier, monospace;
+  color: ${colors.paragraph};
+  border: 1px solid ${colors.border};
 `;
 
-export const BSTConcept: React.FC = () => {
+const BSTConcept: React.FC = () => {
   return (
     <Container>
       <Header>
-        <Title>Binary Search Tree (BST)</Title>
+        <Title>Binary Search Tree</Title>
         <BackLink to="/concept">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor">
             <path d="M19 12H5M12 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -103,29 +108,26 @@ export const BSTConcept: React.FC = () => {
           <SubTitle>Basic Operations</SubTitle>
           
           <Text><strong>1. Insertion</strong></Text>
-          <Text>
-            To insert a new key into a BST:
-          </Text>
+          <Text>To insert a new key into a BST:</Text>
           <List>
             <li>Start at the root</li>
             <li>Compare the key with current node</li>
             <li>If less, go left; if greater, go right</li>
             <li>Repeat until finding an empty spot</li>
           </List>
-          <CodeBlock>{`
-// Example insertion
+          <Code>
+{`// Example insertion
 if (value < currentNode.value) {
     if (!currentNode.left) {
         currentNode.left = new Node(value);
     } else {
         insert(currentNode.left, value);
     }
-}`}</CodeBlock>
+}`}
+          </Code>
 
           <Text><strong>2. Search</strong></Text>
-          <Text>
-            Searching follows a similar process to insertion:
-          </Text>
+          <Text>Searching follows a similar process to insertion:</Text>
           <List>
             <li>Start at root</li>
             <li>If current node has the key, return it</li>
@@ -134,9 +136,7 @@ if (value < currentNode.value) {
           </List>
 
           <Text><strong>3. Deletion</strong></Text>
-          <Text>
-            Deletion has three cases:
-          </Text>
+          <Text>Deletion has three cases:</Text>
           <List>
             <li>Node is a leaf: Simply remove it</li>
             <li>Node has one child: Replace node with its child</li>

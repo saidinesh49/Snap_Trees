@@ -13,13 +13,14 @@ import { BTreeVisualization } from './components/BTreeVisualization';
 import { BTree } from './trees/BTree';
 import { BTreeData } from './types/BTreeTypes';
 import { Concepts } from './components/concepts/Concepts';
-import { BSTConcept } from './components/concepts/BSTConcept';
+import BSTConcept from './components/concepts/BSTConcept';
 import { AVLConcept } from './components/concepts/AVLConcept';
 import { BTreeConcept } from './components/concepts/BTreeConcept';
 import { RedBlackTree } from './trees/RedBlackTree';
 import { RedBlackVisualization } from './components/RedBlackVisualization';
 import { RBNode } from './types/RedBlackTypes';
 import RedBlackConcept from './components/concepts/RedBlackConcept';
+import { colors } from './styles/colors';
 
 const AppContainer = styled.div`
   display: flex;
@@ -27,14 +28,15 @@ const AppContainer = styled.div`
   height: 100vh;
   padding: 20px;
   gap: 20px;
-  background: #f8f9fa;
+  background: ${colors.background};
+  color: ${colors.paragraph};
 `;
 
 const Header = styled.header`
   padding: 20px;
-  background: white;
+  background: ${colors.surface};
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px ${colors.shadow};
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -108,11 +110,11 @@ const SelectContainer = styled.div`
 const Title = styled.h1`
   margin: 0;
   font-size: 24px;
-  color: #1a1a1a;
+  color: ${colors.headline};
 `;
 
 const ConceptLink = styled(Link)`
-  color: #4dabf7;
+  color: #6d5cae;
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -125,7 +127,7 @@ const ConceptLink = styled(Link)`
   white-space: nowrap;
 
   &:hover {
-    background: rgba(77, 171, 247, 0.1);
+    background: rgba(109, 92, 174, 0.1);
     transform: translateX(4px);
   }
 
@@ -142,7 +144,7 @@ const ConceptLink = styled(Link)`
     justify-content: center;
     padding: 12px;
     font-size: 16px;
-    background: rgba(77, 171, 247, 0.1);
+    background: rgba(109, 92, 174, 0.1);
   }
 `;
 
@@ -151,9 +153,9 @@ const ControlPanel = styled.div`
   flex-wrap: wrap;
   gap: 16px;
   padding: 20px;
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(116, 95, 181, 0.1);
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -176,7 +178,7 @@ const ControlGroup = styled.div`
 
 const Input = styled.input`
   padding: 8px 12px;
-  border: 1px solid #dee2e6;
+  border: 2px solid #e8e5f2;
   border-radius: 6px;
   font-size: 14px;
   width: 120px;
@@ -184,8 +186,8 @@ const Input = styled.input`
   
   &:focus {
     outline: none;
-    border-color: #4dabf7;
-    box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2);
+    border-color: #6d5cae;
+    box-shadow: 0 0 0 2px rgba(109, 92, 174, 0.2);
   }
 
   @media (max-width: 768px) {
@@ -196,7 +198,8 @@ const Input = styled.input`
 `;
 
 interface ButtonProps {
-  variant?: 'primary' | 'danger' | 'secondary' | 'success';
+  variant?: 'danger' | 'secondary' | 'success';
+  disabled?: boolean;
 }
 
 const Button = styled.button<ButtonProps>`
@@ -208,39 +211,39 @@ const Button = styled.button<ButtonProps>`
   cursor: pointer;
   background: ${(props: ButtonProps) => {
     switch (props.variant) {
-      case 'danger': return '#fa5252';
-      case 'secondary': return '#868e96';
-      case 'success': return '#40c057';
-      default: return '#4dabf7';
+      case 'danger': return colors.danger;
+      case 'secondary': return colors.secondary;
+      case 'success': return colors.success;
+      default: return colors.primary;
     }
   }};
-  color: white;
+  color: ${colors.background};
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 
   &:hover {
     background: ${(props: ButtonProps) => {
       switch (props.variant) {
-        case 'danger': return '#e03131';
-        case 'secondary': return '#495057';
-        case 'success': return '#37b24d';
-        default: return '#339af0';
+        case 'danger': return '#d45151';
+        case 'secondary': return colors.secondaryHover;
+        case 'success': return '#7193bc';
+        default: return colors.primaryHover;
       }
     }};
   }
 
   &:disabled {
-    background: #adb5bd;
+    background: #e8e5f2;
     cursor: not-allowed;
   }
 
   @media (max-width: 768px) {
     width: 100%;
+    justify-content: center;
     padding: 12px;
     font-size: 16px;
-    justify-content: center;
   }
 `;
 
@@ -259,12 +262,13 @@ const Divider = styled.div`
 
 const VisualizationContainer = styled.div`
   flex: 1;
-  background: white;
+  background: ${colors.surfaceLight};
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px ${colors.shadow};
   overflow: hidden;
   position: relative;
   min-height: 500px;
+  border: 1px solid ${colors.borderLight};
 
   @media (max-width: 768px) {
     min-height: 400px;

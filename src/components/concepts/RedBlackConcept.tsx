@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { colors } from '../../styles/colors';
 
 // Reuse styled components from other concepts
 const Container = styled.div`
@@ -16,8 +17,14 @@ const Header = styled.header`
   align-items: center;
 `;
 
+const Title = styled.h1`
+  font-size: 32px;
+  color: ${colors.headline};
+  margin: 0;
+`;
+
 const BackLink = styled(Link)`
-  color: #4dabf7;
+  color: ${colors.primary};
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -34,12 +41,6 @@ const Content = styled.div`
   border-radius: 12px;
   padding: 32px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-`;
-
-const Title = styled.h1`
-  font-size: 32px;
-  color: #1a1a1a;
-  margin: 0 0 24px 0;
 `;
 
 const Section = styled.section`
@@ -87,6 +88,7 @@ const RedBlackConcept: React.FC = () => {
   return (
     <Container>
       <Header>
+        <Title>Red-Black Tree</Title>
         <BackLink to="/concept">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor">
             <path d="M19 12H5M12 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
