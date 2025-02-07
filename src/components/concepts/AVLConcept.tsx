@@ -1,9 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-import { colors } from "../../styles/colors";
+import { colors } from "../../styles/colors"; //ok
 
-// Reuse styled components from BSTConcept
 const Container = styled.div`
 	padding: 40px 20px;
 	max-width: 1200px;
@@ -100,7 +99,59 @@ const ReferenceLink = styled.a`
 	}
 `;
 
-export const AVLConcept: React.FC = () => {
+const Image = styled.img`
+	width: 100%;
+	max-width: 600px;
+	margin: 16px 0;
+	cursor: pointer;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	transition: transform 0.2s;
+
+	&:hover {
+		transform: scale(1.05);
+	}
+`;
+
+const ImagePreview = styled.div`
+	display: ${({ show }: { show: boolean }) => (show ? "flex" : "none")};
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.8);
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+
+	img {
+		max-width: 90%;
+		max-height: 90%;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+`;
+
+const ImageContainer = styled.div`
+	border: 1px solid #ddd;
+	padding: 16px;
+	border-radius: 8px;
+	margin-bottom: 16px;
+	background: #f9f9f9;
+`;
+
+const AVLConcept: React.FC = () => {
+	const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
+
+	const handleImageClick = (src: string) => {
+		setPreviewSrc(src);
+	};
+
+	const handleClosePreview = () => {
+		setPreviewSrc(null);
+	};
+
 	return (
 		<Container>
 			<Header>
@@ -152,65 +203,334 @@ export const AVLConcept: React.FC = () => {
 				</Section>
 
 				<Section>
-					<SubTitle>Rotations</SubTitle>
-					<Text>
-						When the balance factor of a node becomes less than -1 or greater
-						than 1, rotations are performed to rebalance the tree:
-					</Text>
+					<SubTitle>Insertion</SubTitle>
+					<Text>To insert a node in an AVL tree, follow these steps:</Text>
 					<List>
+						<li>Insert like a normal BST insertion.</li>
+						<li>Update the height of each ancestor node.</li>
+						<li>Check the balance factor of each ancestor node.</li>
 						<li>
-							<strong>Left Rotation:</strong> Used when right subtree becomes
-							too heavy
-						</li>
-						<li>
-							<strong>Right Rotation:</strong> Used when left subtree becomes
-							too heavy
-						</li>
-						<li>
-							<strong>Left-Right Rotation:</strong> Double rotation for
-							left-right imbalance
-						</li>
-						<li>
-							<strong>Right-Left Rotation:</strong> Double rotation for
-							right-left imbalance
+							If the balance factor is out of range (-1, 0, 1), perform
+							rotations to balance the tree.
 						</li>
 					</List>
-					<CodeBlock>{`
-// Example Left Rotation
-rightRotate(Node y) {
-    Node x = y.left;
-    Node T2 = x.right;
-
-    x.right = y;
-    y.left = T2;
-
-    y.height = max(height(y.left), height(y.right)) + 1;
-    x.height = max(height(x.left), height(x.right)) + 1;
-
-    return x;
-}`}</CodeBlock>
+					<Text>Example:</Text>
+					<List>
+						<li>
+							<strong>Insert 14:</strong>
+							{" As there is no-node so 14 will be root."}
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_1.png"
+								alt="Insert 14"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_1.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 17:</strong>
+							{
+								" Here since 17 is greater so according to BST insertion it will be inserted at the right of 14."
+							}
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_2.png"
+								alt="Insert 17"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_2.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 11:</strong>
+							{
+								" According to BST insertion follow up..,11 will be inserted at left of 14."
+							}
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_3.png"
+								alt="Insert 11"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_3.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 7:</strong>
+							{
+								" On inserting 7 (By BST insertion follow up)., there will be no violation (so simply insert)."
+							}
+							<br />
+							<strong>Result:</strong>
+							<br />{" "}
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_4.png"
+								alt="Insert 7"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_4.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 53:</strong>
+							{
+								" On inserting 53., still there will be no violation. (So, simply insert)"
+							}
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_5.png"
+								alt="Insert 53"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_5.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 4:</strong>
+							{
+								" On inserting 4., there will be violation occurence at 11 (BF: 2)..,so here requires Right Rotation at 11."
+							}
+							<br />
+							<strong>Result After (Right Rotation):</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_6.png"
+								alt="Insert 4"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_6.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 13:</strong>
+							{
+								" On inserting 13 there will be no-violation. so, simply insert."
+							}
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_7.png"
+								alt="Insert 13"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_7.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 12: </strong>On inserting 12., Balance Factor of 11
+							becomes -2..(Violation at 11).., so now here requires Right-Left
+							Rotation.
+							<br />
+							<strong>Result After (Right-Left Rotation):</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_8.png"
+								alt="Insert 12"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_8.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 8: </strong>On inserting 8.., BF of 7 becomes -2
+							(violation at 7)., so requires., Right-Left Rotation + child
+							exchange., where 11 becomes child of 7 and 12.., and 8 becomes
+							child of 7.,
+							<br />
+							<strong>Result After (Rotation + child swapping):</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_9.png"
+								alt="Insert 8"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Insertion_Images/AVL_img_9.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 60: </strong>On inserting 60., BF of 17 becomes
+							-2., so here requies., Left-Rotation. where 53 becomes parent of
+							17 and 60.
+							<br />
+							<strong>Result After (Left Rotation):</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_10.png"
+								alt="Insert 60"
+								onClick={() =>
+									handleImageClick(
+										"/assets/AVL/Insertion_Images/AVL_img_10.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 19: </strong>There will be No-Violation on
+							inserting 19
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_11.png"
+								alt="Insert 19"
+								onClick={() =>
+									handleImageClick(
+										"/assets/AVL/Insertion_Images/AVL_img_11.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 16: </strong> There wil be No-Violation on
+							inserting 16.
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_12.png"
+								alt="Insert 16"
+								onClick={() =>
+									handleImageClick(
+										"/assets/AVL/Insertion_Images/AVL_img_12.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 20: </strong>On inserting 20., the BF of 53 becomes
+							2 (Violation)..,so here requires Left-Right Rotation & child
+							exchange. where 19 becomes parent of 17 and 53.
+							<br />
+							<strong>
+								Result After (Left-Right Rotation & Child Exchanging):
+							</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Insertion_Images/AVL_img_13.png"
+								alt="Insert 20"
+								onClick={() =>
+									handleImageClick(
+										"/assets/AVL/Insertion_Images/AVL_img_13.png",
+									)
+								}
+							/>
+						</li>
+					</List>
 				</Section>
 
 				<Section>
-					<SubTitle>Operations</SubTitle>
-					<Text>
-						<strong>1. Insertion</strong>
-					</Text>
+					<SubTitle>Deletion</SubTitle>
+					<Text>To delete a node in an AVL tree, follow these steps:</Text>
 					<List>
-						<li>Insert like a normal BST</li>
-						<li>Update heights of ancestors</li>
-						<li>Check balance factor at each ancestor</li>
-						<li>If unbalanced, perform appropriate rotation</li>
+						<li>Delete the node as in a regular BST.</li>
+						<li>Update the height of each ancestor node.</li>
+						<li>Check the balance factor of each ancestor node.</li>
+						<li>
+							If the balance factor is out of range (-1, 0, 1), perform
+							rotations to balance the tree.
+						</li>
 					</List>
-
-					<Text>
-						<strong>2. Deletion</strong>
-					</Text>
+					<Text>Example:</Text>
 					<List>
-						<li>Delete like a normal BST</li>
-						<li>Update heights of ancestors</li>
-						<li>Check balance factor at each ancestor</li>
-						<li>If unbalanced, perform appropriate rotation</li>
+						<div>
+							<ImageContainer>
+								<strong>Original tree before any deletion:</strong>
+								<br />
+								<Image
+									src="/assets/AVL/Insertion_Images/AVL_img_13.png"
+									alt="Delete 8"
+									onClick={() =>
+										handleImageClick(
+											"/assets/AVL/Insertion_Images/AVL_img_13.png",
+										)
+									}
+								/>
+							</ImageContainer>
+						</div>
+						<li>
+							<strong>Delete 8:</strong> Remove the node with value 8. Since it
+							has no children, simply remove it.
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Deletion_Images/AVL_Del_1.png"
+								alt="Delete 8"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Deletion_Images/AVL_Del_1.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Delete 7:</strong> Remove the node with value 7. Since it
+							has one child, replace it with its child.
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Deletion_Images/AVL_Del_2.png"
+								alt="Delete 7"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Deletion_Images/AVL_Del_2.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Delete 11:</strong> Remove the node with value 11. Since
+							it has two children, replace it with its in-order successor (the
+							smallest node in the right subtree).
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Deletion_Images/AVL_Del_3.png"
+								alt="Delete 11"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Deletion_Images/AVL_Del_3.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Delete 14:</strong> Remove the node with value 14(root).
+							Since it has two child, replace its in-order successor (the
+							smallest node in the right subtree) and delete the 14.
+							<br />
+							<strong>Result:</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Deletion_Images/AVL_Del_4.png"
+								alt="Delete 14"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Deletion_Images/AVL_Del_4.png")
+								}
+							/>
+						</li>
+						<li>
+							<strong>Delete 17:</strong> Remove the node with value 17. Since
+							it has no children, But due to this violation occurs at 19 (BF:
+							-2)...So here requires Left Rotation. After which 53 becomes
+							parent of 19 & 60 and also here 20 will become right child of 19.
+							<br />
+							<strong>Result After (Left Rotation):</strong>
+							<br />
+							<Image
+								src="/assets/AVL/Deletion_Images/AVL_Del_5.png"
+								alt="Delete 17"
+								onClick={() =>
+									handleImageClick("/assets/AVL/Deletion_Images/AVL_Del_5.png")
+								}
+							/>
+						</li>
 					</List>
 				</Section>
 
@@ -289,6 +609,12 @@ rightRotate(Node y) {
 					</List>
 				</Section>
 			</Content>
+
+			{previewSrc && (
+				<ImagePreview show={!!previewSrc} onClick={handleClosePreview}>
+					<img src={previewSrc} alt="Preview" />
+				</ImagePreview>
+			)}
 		</Container>
 	);
 };
