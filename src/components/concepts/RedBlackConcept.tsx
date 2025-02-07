@@ -142,6 +142,34 @@ const ImageContainer = styled.div`
 	background: #f9f9f9;
 `;
 
+const Prerequisite = styled.div`
+	margin-bottom: 32px;
+`;
+
+const PrerequisiteText = styled.strong`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 18px;
+	color: #1a1a1a;
+`;
+
+const PrerequisiteLink = styled(Link)`
+	color: ${colors.primary};
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 500;
+	padding: 8px 16px;
+	border-radius: 8px;
+	background: ${colors.surfaceLight};
+
+	svg {
+		stroke: ${colors.primary};
+	}
+`;
+
 const RedBlackConcept: React.FC = () => {
 	const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
 
@@ -178,6 +206,28 @@ const RedBlackConcept: React.FC = () => {
 
 			<Content>
 				<Section>
+					<Prerequisite>
+						<PrerequisiteText>
+							Prerequisite:
+							<PrerequisiteLink to="/concept/BST">
+								Binary Search Tree (BST)
+								<svg
+									viewBox="0 0 24 24"
+									width="16"
+									height="16"
+									fill="none"
+									stroke="currentColor"
+								>
+									<path
+										d="M5 12h14M12 5l7 7-7 7"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
+								</svg>
+							</PrerequisiteLink>
+						</PrerequisiteText>
+					</Prerequisite>
 					<SubTitle>What is a Red-Black Tree?</SubTitle>
 					<Text>
 						A Red-Black tree is a self-balancing binary search tree with the

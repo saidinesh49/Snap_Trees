@@ -20,6 +20,7 @@ import { RedBlackTree } from "./trees/RedBlackTree";
 import { RedBlackVisualization } from "./components/RedBlackVisualization";
 import { RBNode } from "./types/RedBlackTypes";
 import RedBlackConcept from "./components/concepts/RedBlackConcept";
+import BinaryTreeConcept from "./components/concepts/BinaryTreeConcept";
 import { colors } from "./styles/colors";
 
 const AppContainer = styled.div`
@@ -733,6 +734,7 @@ const App: React.FC = () => {
 				<Route path="/concept/AVL" element={<AVLConcept />} />
 				<Route path="/concept/RedBlack" element={<RedBlackConcept />} />
 				<Route path="/concept/BTree" element={<BTreeConcept />} />
+				<Route path="/concept/BinaryTree" element={<BinaryTreeConcept />} />
 			</Routes>
 		</Router>
 	);

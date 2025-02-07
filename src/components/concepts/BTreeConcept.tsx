@@ -101,6 +101,34 @@ const ReferenceLink = styled.a`
 	}
 `;
 
+const Prerequisite = styled.div`
+	margin-bottom: 32px;
+`;
+
+const PrerequisiteText = styled.strong`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 18px;
+	color: #1a1a1a;
+`;
+
+const PrerequisiteLink = styled(Link)`
+	color: ${colors.primary};
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 500;
+	padding: 8px 16px;
+	border-radius: 8px;
+	background: ${colors.surfaceLight};
+
+	svg {
+		stroke: ${colors.primary};
+	}
+`;
+
 export const BTreeConcept: React.FC = () => {
 	return (
 		<Container>
@@ -127,6 +155,28 @@ export const BTreeConcept: React.FC = () => {
 
 			<Content>
 				<Section>
+					<Prerequisite>
+						<PrerequisiteText>
+							Prerequisite:
+							<PrerequisiteLink to="/concept/BST">
+								Binary Search Tree (BST)
+								<svg
+									viewBox="0 0 24 24"
+									width="16"
+									height="16"
+									fill="none"
+									stroke="currentColor"
+								>
+									<path
+										d="M5 12h14M12 5l7 7-7 7"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
+								</svg>
+							</PrerequisiteLink>
+						</PrerequisiteText>
+					</Prerequisite>
 					<SubTitle>What is a B-Tree?</SubTitle>
 					<Text>
 						A B-tree is a self-balancing tree data structure that maintains
@@ -280,7 +330,7 @@ interface BTreeNode {
 				</Section>
 
 				<Section>
-					<SubTitle>References</SubTitle>
+					<SubTitle>More References</SubTitle>
 					<List>
 						<li>
 							<ReferenceLink

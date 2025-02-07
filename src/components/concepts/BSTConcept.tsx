@@ -142,6 +142,34 @@ const ImageContainer = styled.div`
 	background: #f9f9f9;
 `;
 
+const Prerequisite = styled.div`
+	margin-bottom: 32px;
+`;
+
+const PrerequisiteText = styled.strong`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 18px;
+	color: #1a1a1a;
+`;
+
+const PrerequisiteLink = styled(Link)`
+	color: ${colors.primary};
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 500;
+	padding: 8px 16px;
+	border-radius: 8px;
+	background: ${colors.surfaceLight};
+
+	svg {
+		stroke: ${colors.primary};
+	}
+`;
+
 const BSTConcept: React.FC = () => {
 	const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
 
@@ -178,6 +206,28 @@ const BSTConcept: React.FC = () => {
 
 			<Content>
 				<Section>
+					<Prerequisite>
+						<PrerequisiteText>
+							Prerequisite:
+							<PrerequisiteLink to="/concept/BinaryTree">
+								Binary Tree
+								<svg
+									viewBox="0 0 24 24"
+									width="16"
+									height="16"
+									fill="none"
+									stroke="currentColor"
+								>
+									<path
+										d="M5 12h14M12 5l7 7-7 7"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
+								</svg>
+							</PrerequisiteLink>
+						</PrerequisiteText>
+					</Prerequisite>
 					<SubTitle>What is a Binary Search Tree?</SubTitle>
 					<Text>
 						A Binary Search Tree (BST) is a node-based binary tree data
@@ -249,6 +299,7 @@ const BSTConcept: React.FC = () => {
 							root.
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Insertion/BST_img_1.png"
 								alt="Insert 10"
@@ -262,6 +313,7 @@ const BSTConcept: React.FC = () => {
 							subtree of 10.., and insert 5.
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Insertion/BST_img_2.png"
 								alt="Insert 5"
@@ -275,6 +327,7 @@ const BSTConcept: React.FC = () => {
 							right subtree of 10.., and insert 15.
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Insertion/BST_img_3.png"
 								alt="Insert 15"
@@ -289,6 +342,7 @@ const BSTConcept: React.FC = () => {
 							of 5.., and insert 3.
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Insertion/BST_img_4.png"
 								alt="Insert 3"
@@ -303,6 +357,7 @@ const BSTConcept: React.FC = () => {
 							subtree of 5.., and insert 7.
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Insertion/BST_img_5.png"
 								alt="Insert 7"
@@ -317,6 +372,7 @@ const BSTConcept: React.FC = () => {
 							subtree of 15.., and insert 12.
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Insertion/BST_img_6.png"
 								alt="Insert 12"
@@ -331,6 +387,7 @@ const BSTConcept: React.FC = () => {
 							right subtree of 15.., and insert 18.
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Insertion/BST_img_7.png"
 								alt="Insert 18"
@@ -364,6 +421,7 @@ const BSTConcept: React.FC = () => {
 						<div>
 							<ImageContainer>
 								<strong>Original tree before any deletion:</strong>
+								<br />
 								<Image
 									src="/assets/BST/Insertion/BST_img_7.png"
 									alt="Original Tree"
@@ -379,6 +437,7 @@ const BSTConcept: React.FC = () => {
 							(smallest node in the right subtree).
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Deletion/BST_Del_1.png"
 								alt="Delete 15"
@@ -392,6 +451,7 @@ const BSTConcept: React.FC = () => {
 							it has no children, simply remove it.
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Deletion/BST_Del_2.png"
 								alt="Delete 12"
@@ -406,6 +466,7 @@ const BSTConcept: React.FC = () => {
 							node in the right subtree).
 							<br />
 							<strong>Result:</strong>
+							<br />
 							<Image
 								src="/assets/BST/Deletion/BST_Del_3.png"
 								alt="Delete 5"
@@ -502,7 +563,7 @@ const BSTConcept: React.FC = () => {
 				</Section>
 
 				<Section>
-					<SubTitle>References</SubTitle>
+					<SubTitle>More References</SubTitle>
 					<List>
 						<li>
 							<ReferenceLink

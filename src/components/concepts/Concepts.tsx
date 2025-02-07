@@ -146,8 +146,33 @@ export const Concepts: React.FC = () => {
 			</Header>
 
 			<ConceptGrid>
+				<ConceptCard to="/concept/BinaryTree">
+					<ConceptTitle>Binary Tree</ConceptTitle>
+					<ConceptDescription>
+						A tree data structure in which each node has at most two children,
+						referred to as the left child and the right child.
+					</ConceptDescription>
+					<LearnMore>
+						Learn More
+						<svg
+							viewBox="0 0 24 24"
+							width="16"
+							height="16"
+							fill="none"
+							stroke="currentColor"
+						>
+							<path
+								d="M5 12h14M12 5l7 7-7 7"
+								strokeWidth="2"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							/>
+						</svg>
+					</LearnMore>
+				</ConceptCard>
+
 				<ConceptCard to="/concept/BST">
-					<ConceptTitle>Binary Search Tree</ConceptTitle>
+					<ConceptTitle>Binary Search Tree (BST)</ConceptTitle>
 					<ConceptDescription>
 						A binary tree with the property that the key in each node is greater
 						than all keys in its left subtree and less than all keys in its
