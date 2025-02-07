@@ -70,7 +70,8 @@ const SelectContainer = styled.div`
 
 	select {
 		padding: 8px 12px;
-		border: 1px solid #dee2e6;
+		border: 1px solid rgb(157, 204, 251);
+		box-shadow: 0 0 0 2px rgba(135, 192, 239, 0.2);
 		border-radius: 6px;
 		font-size: 14px;
 		min-width: 150px;
@@ -115,6 +116,7 @@ const Title = styled.h1`
 
 const ConceptLink = styled(Link)`
 	color: #6d5cae;
+	background: rgba(109, 92, 174, 0.1);
 	text-decoration: none;
 	display: flex;
 	align-items: center;
@@ -534,6 +536,7 @@ const MainApp: React.FC = () => {
 				<Title>Tree Visualization</Title>
 				<HeaderControls>
 					<SelectContainer>
+						<label>Select Tree Type:</label>
 						<select value={treeType} onChange={handleTreeTypeChange}>
 							<option value="BST">Binary Search Tree</option>
 							<option value="AVL">AVL Tree</option>

@@ -247,8 +247,8 @@ export const Concepts: React.FC = () => {
 						</svg>
 					</LearnMore>
 				</ConceptCard>
-				<MadeWithLove />
 			</ConceptGrid>
+			<MadeWithLove />
 		</Container>
 	);
 };

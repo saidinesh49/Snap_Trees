@@ -503,6 +503,7 @@ const RedBlackConcept: React.FC = () => {
 						<div>
 							<ImageContainer>
 								<strong>Original tree before any deletion:</strong>
+								<br />
 								<Image
 									src="/assets/RedBlack/Insertion_Images/RedBlack_img_12.png"
 									alt="Original Tree"
