@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { colors } from "../../styles/colors";
 
-// Reuse styled components from other concepts
 const Container = styled.div`
 	padding: 40px 20px;
 	max-width: 1200px;
@@ -18,12 +17,6 @@ const Header = styled.header`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-`;
-
-const Title = styled.h1`
-	font-size: 32px;
-	color: ${colors.headline};
-	margin: 0;
 `;
 
 const BackLink = styled(Link)`
@@ -53,7 +46,7 @@ const Content = styled.div`
 	background: white;
 	border-radius: 12px;
 	padding: 32px;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	@media (max-width: 768px) {
 		padding: 20px;
 	}
@@ -63,32 +56,29 @@ const Section = styled.section`
 	margin-bottom: 32px;
 `;
 
+const Title = styled.h1`
+	font-size: 32px;
+	color: #1a1a1a;
+	margin: 0;
+`;
+
 const SubTitle = styled.h2`
 	font-size: 24px;
 	color: #1a1a1a;
-	margin: 24px 0 16px 0;
+	margin: 0 0 16px;
 `;
 
 const Text = styled.p`
-	font-size: 16px;
+	color: #666;
 	line-height: 1.6;
-	color: #4a4a4a;
-	margin-bottom: 16px;
+	margin: 0 0 16px;
 `;
 
 const List = styled.ul`
-	margin: 0 0 16px 20px;
-	padding-left: 0;
-
-	li {
-		margin-bottom: 12px;
-		line-height: 1.6;
-		color: #4a4a4a;
-	}
-
-	ul {
-		margin: 8px 0 8px 20px;
-	}
+	color: #666;
+	line-height: 1.6;
+	margin: 0 0 16px;
+	padding-left: 20px;
 `;
 
 const CodeBlock = styled.pre`
@@ -109,7 +99,59 @@ const ReferenceLink = styled.a`
 	}
 `;
 
+const Image = styled.img`
+	width: 100%;
+	max-width: 600px;
+	margin: 16px 0;
+	cursor: pointer;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	transition: transform 0.2s;
+
+	&:hover {
+		transform: scale(1.05);
+	}
+`;
+
+const ImagePreview = styled.div`
+	display: ${({ show }: { show: boolean }) => (show ? "flex" : "none")};
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.8);
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+
+	img {
+		max-width: 90%;
+		max-height: 90%;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+`;
+
+const ImageContainer = styled.div`
+	border: 1px solid #ddd;
+	padding: 16px;
+	border-radius: 8px;
+	margin-bottom: 16px;
+	background: #f9f9f9;
+`;
+
 const RedBlackConcept: React.FC = () => {
+	const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
+
+	const handleImageClick = (src: string) => {
+		setPreviewSrc(src);
+	};
+
+	const handleClosePreview = () => {
+		setPreviewSrc(null);
+	};
+
 	return (
 		<Container>
 			<Header>
@@ -135,39 +177,25 @@ const RedBlackConcept: React.FC = () => {
 
 			<Content>
 				<Section>
-					<SubTitle>What is a Red-Black tree?</SubTitle>
+					<SubTitle>What is a Red-Black Tree?</SubTitle>
 					<Text>
-						A Red-Black tree is a type of self-balancing binary search tree
-						where each node has an extra bit representing color (either red or
-						black). These colors help maintain the tree's balance during
-						operations like insertion and deletion.
+						A Red-Black tree is a self-balancing binary search tree with the
+						following properties:
 					</Text>
-				</Section>
-
-				<Section>
-					<SubTitle>Fundamental Properties</SubTitle>
 					<List>
+						<li>Every node is either red or black.</li>
+						<li>The root is always black.</li>
+						<li>All the nil nodes are considered to be double black.</li>
 						<li>
-							<strong>Property 1:</strong> Every node must be either RED or
-							BLACK
+							No two adjacent red nodes (i.e., a red node cannot have a red
+							parent or red child).
 						</li>
 						<li>
-							<strong>Property 2:</strong> The root must always be BLACK
-						</li>
-						<li>
-							<strong>Property 3:</strong> All NULL leaves are considered BLACK
-						</li>
-						<li>
-							<strong>Property 4:</strong> A RED node cannot have RED children
-							(No consecutive RED nodes)
-						</li>
-						<li>
-							<strong>Property 5:</strong> Every path from root to any NULL leaf
-							must contain the same number of BLACK nodes (Black Height)
+							Every path from a node to its descendant nil nodes has the same
+							number of black nodes.
 						</li>
 					</List>
 				</Section>
-
 				<Section>
 					<SubTitle>Node Structure</SubTitle>
 					<Text>Each node in a Red-Black tree contains:</Text>
@@ -219,8 +247,223 @@ const RedBlackConcept: React.FC = () => {
 						</li>
 					</List>
 
+					<SubTitle>1) Insertion</SubTitle>
+					<Text>To insert a node in a Red-Black tree, follow these steps:</Text>
+					<List>
+						<li>Insert the node as in a regular BST.</li>
+						<li>Color the new node red.</li>
+						<li>Fix any violations of the Red-Black tree properties.</li>
+					</List>
+					<Text>Example:</Text>
+					<List>
+						<li>
+							<strong>Insert 10:</strong> The tree is empty, so 10 becomes the
+							root and is colored black.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_1.png"
+								alt="Insert 10"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_1.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 18:</strong> Insert 18 to the right of 10 and color
+							it red.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_2.png"
+								alt="Insert 18"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_2.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 7:</strong> Insert 7 to the left of 10 and color it
+							red.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_3.png"
+								alt="Insert 7"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_3.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 15:</strong> Insert 15 to the left of 18 and color
+							it red. This causes a red-red conflict., so here requires
+							re-coloouring of 18 and 7 to black.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_4.png"
+								alt="Insert 15"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_4.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 16:</strong> Insert 16 to the right of 15 and color
+							it red. This causes another red-red conflict., so here to fix the
+							conflict we need to perform rotations and recolor.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_5.png"
+								alt="Insert 16"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_5.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 30:</strong> Insert 30 to the right of 18.,so here
+							red-red conflict occurs., as parent & uncle both are also red., so
+							simply re-color parent, uncle and grand-parent.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_6.png"
+								alt="Insert 30"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_6.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 25:</strong> On inserting 25 to the left of 30.,
+							red-red conflict occurs., so here as there is no-uncle means nil
+							node..(NIL node = Double black)..,so here we need to perform
+							Right-Left Rotation & then recoloring.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_7.png"
+								alt="Insert 25"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_7.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 40:</strong> On inserting 40 to the right of 30.,
+							red-red conflict occurs.,as the uncle of 40 that is 18 is red we
+							need to recolor., then again conflict occurs at the 25., so here
+							as the uncle of 25 is black.., we need to perform rotations and
+							recoloring. where 16 becomes the parent of 10 & 25.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_8.png"
+								alt="Insert 40"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_8.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 60:</strong> No violation on inserting 60.(So
+							simply insert 60 to the right of 40)
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_9.png"
+								alt="Insert 60"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_9.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 2:</strong> No violation on inserting 2.(So simply
+							insert 2 to the left of 7)
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_10.png"
+								alt="Insert 2"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_10.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 1:</strong> On inserting 1 to the left of 2.,
+							red-red conflict occurs so here as the uncle of 1 is nil.., so we
+							need to perform Right Rotation, where 2 becomes parent of 1 & 7.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_11.png"
+								alt="Insert 1"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_11.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Insert 70:</strong> On inserting 70 to the right of 60.,
+							red-red conflict occurs. So as here the uncle of 70 is red., we
+							need to perform re-coloring, as we continue checking for conflicts
+							we again get red-red conflict at 40 & 25., so here we need to
+							recolor 25 and its siblings.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Insertion_Images/RedBlack_img_12.png"
+								alt="Insert 70"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Insertion_Images/RedBlack_img_12.png",
+									)
+								}
+							/>
+						</li>
+					</List>
+				</Section>
+
+				<Section>
+					<SubTitle>2) Deletion</SubTitle>
+					<Text>To delete a node in a Red-Black tree, follow these steps:</Text>
+					<List>
+						<li>Perform standard BST deletion.</li>
+						<li>If the deleted node is red, simply remove it.</li>
+						<li>
+							If the deleted node is black, fix any violations of the Red-Black
+							tree properties.
+						</li>
+					</List>
 					<Text>
-						<strong>2. Deletion</strong>
+						<strong>Steps for deletion</strong>
 					</Text>
 					<List>
 						<li>Step 1: Find the node to delete</li>
@@ -254,10 +497,75 @@ const RedBlackConcept: React.FC = () => {
 							</ul>
 						</li>
 					</List>
+					<Text>Example:</Text>
+					<List>
+						<div>
+							<ImageContainer>
+								<strong>Original tree before any deletion:</strong>
+								<Image
+									src="/assets/RedBlack/Insertion_Images/RedBlack_img_12.png"
+									alt="Original Tree"
+									onClick={() =>
+										handleImageClick(
+											"/assets/RedBlack/Insertion_Images/RedBlack_img_12.png",
+										)
+									}
+								/>
+							</ImageContainer>
+						</div>
+						<li>
+							<strong>Delete 16 (root):</strong> Replace the in-order successor
+							(right sub-tree smallest element) which is 18..,(you can also take
+							in-order predecessor which is left sub-tree greatest element).,
+							and then delete that replaced node instead.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Deletion_Images/RedBlack_Del_1.png"
+								alt="Delete 16"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Deletion_Images/RedBlack_Del_1.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Delete 40:</strong> Replace 40 with its in-order
+							successor., here which is 60, and then delete that replaced node
+							instead.
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Deletion_Images/RedBlack_Del_2.png"
+								alt="Delete 40"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Deletion_Images/RedBlack_Del_2.png",
+									)
+								}
+							/>
+						</li>
+						<li>
+							<strong>Delete 10:</strong> Replace 10 with its in-order
+							successor., here which is 15(Black).
+							<br />
+							<strong>Result:</strong>
+							<Image
+								src="/assets/RedBlack/Deletion_Images/RedBlack_Del_3.png"
+								alt="Delete 10"
+								onClick={() =>
+									handleImageClick(
+										"/assets/RedBlack/Deletion_Images/RedBlack_Del_3.png",
+									)
+								}
+							/>
+						</li>
+					</List>
+				</Section>
 
-					<Text>
-						<strong>3. Search</strong>
-					</Text>
+				<Section>
+					<SubTitle>3) Searching:</SubTitle>
 					<List>
 						<li>Identical to regular BST search</li>
 						<li>Colors don't affect the search process</li>
@@ -348,7 +656,7 @@ const RedBlackConcept: React.FC = () => {
 				</Section>
 
 				<Section>
-					<SubTitle>References</SubTitle>
+					<SubTitle>More References</SubTitle>
 					<List>
 						<li>
 							<ReferenceLink
@@ -377,6 +685,12 @@ const RedBlackConcept: React.FC = () => {
 					</List>
 				</Section>
 			</Content>
+
+			{previewSrc && (
+				<ImagePreview show={!!previewSrc} onClick={handleClosePreview}>
+					<img src={previewSrc} alt="Preview" />
+				</ImagePreview>
+			)}
 		</Container>
 	);
 };
