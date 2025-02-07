@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { colors } from "../../styles/colors";
+import MadeWithLove from "components/common/MadeWithLove";
 
 const Container = styled.div`
 	padding: 40px;
@@ -246,6 +247,7 @@ export const Concepts: React.FC = () => {
 						</svg>
 					</LearnMore>
 				</ConceptCard>
+				<MadeWithLove />
 			</ConceptGrid>
 		</Container>
 	);

@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { colors } from "../../styles/colors";
+import MadeWithLove from "../common/MadeWithLove";
 
 const Container = styled.div`
 	padding: 40px 20px;
@@ -530,7 +531,7 @@ const BSTConcept: React.FC = () => {
 					</List>
 				</Section>
 			</Content>
-
+			<MadeWithLove />
 			{previewSrc && (
 				<ImagePreview show={!!previewSrc} onClick={handleClosePreview}>
 					<img src={previewSrc} alt="Preview" />

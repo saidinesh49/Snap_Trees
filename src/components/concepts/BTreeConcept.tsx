@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { colors } from "../../styles/colors";
+import MadeWithLove from "components/common/MadeWithLove";
 
 // Reuse styled components from previous concepts
 const Container = styled.div`
@@ -308,6 +309,7 @@ interface BTreeNode {
 					</List>
 				</Section>
 			</Content>
+			<MadeWithLove />
 		</Container>
 	);
 };
