@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { colors } from '../styles/colors';
 import { BTreeVisualization } from './BTreeVisualization';
 
 const SwitcherContainer = styled.div`
@@ -15,23 +16,30 @@ interface TabButtonProps {
 
 const TabButton = styled.button<TabButtonProps>`
   padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
+  border: 2px solid ${ ({ active }: TabButtonProps) => active ? colors.primary : colors.secondary };
+  border-radius: 0;
   background: ${({ active, disabled }: TabButtonProps) => 
-    disabled ? '#adb5bd' : 
-    active ? '#4dabf7' : '#e9ecef'};
+    disabled ? colors.secondaryMuted : 
+    active ? colors.primary : colors.background};
   color: ${({ active, disabled }: TabButtonProps) => 
-    disabled ? '#868e96' : 
-    active ? 'white' : '#495057'};
+    disabled ? colors.textMuted : 
+    colors.headline};
   font-size: 14px;
   font-weight: 600;
   cursor: ${({ disabled }: TabButtonProps) => disabled ? 'not-allowed' : 'pointer'};
   transition: all 0.2s;
+  box-shadow: 4px 4px 0 ${ ({ active }: TabButtonProps) => active ? colors.secondary : colors.headline };
 
   &:hover {
     background: ${({ active, disabled }: TabButtonProps) => 
-      disabled ? '#adb5bd' : 
-      active ? '#339af0' : '#dee2e6'};
+      disabled ? colors.secondaryMuted : 
+      active ? colors.primaryHover : colors.surfaceLight};
+    box-shadow: 2px 2px 0 ${ ({ active }: TabButtonProps) => active ? colors.secondaryHover : colors.headline };
+  }
+
+  &:active {
+    box-shadow: none;
+    transform: translate(4px, 4px);
   }
 
   @media (max-width: 768px) {

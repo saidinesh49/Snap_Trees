@@ -34,18 +34,22 @@ const ConceptGrid = styled.div`
 
 const ConceptCard = styled(Link)`
 	padding: 28px;
-	border-radius: 12px;
-	background: ${colors.surface};
-	box-shadow: 0 2px 8px ${colors.shadow};
+	border: 2px solid ${colors.secondary};
+	border-radius: 0;
+	background: ${colors.background};
+	box-shadow: 4px 4px 0 ${colors.secondary};
 	text-decoration: none;
-	color: inherit;
+	color: ${colors.headline};
 	transition: all 0.2s;
-	border: 1px solid ${colors.borderLight};
 
 	&:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px ${colors.shadowHover};
-		border-color: ${colors.primary};
+		box-shadow: 2px 2px 0 ${colors.secondary};
+		transform: translate(2px, 2px);
+	}
+
+	&:active {
+		box-shadow: none;
+		transform: translate(4px, 4px);
 	}
 `;
 
@@ -58,47 +62,64 @@ const ConceptTitle = styled.h2`
 
 const ConceptDescription = styled.p`
 	margin: 0 0 20px;
-	color: ${colors.paragraph};
+	color: ${colors.headline};
 	line-height: 1.6;
 `;
 
 const LearnMore = styled.span`
-	color: ${colors.primary};
+	color: ${colors.headline};
 	display: flex;
 	align-items: center;
 	gap: 6px;
 	font-weight: 500;
 	font-size: 14px;
+	border: 2px solid ${colors.secondary};
+	padding: 8px 16px;
+	box-shadow: 4px 4px 0 ${colors.secondary};
+	transition: all 0.2s;
+
+	${ConceptCard}:hover & {
+		box-shadow: 2px 2px 0 ${colors.secondary};
+		transform: translate(2px, 2px);
+	}
+
+	${ConceptCard}:active & {
+		box-shadow: none;
+		transform: translate(4px, 4px);
+	}
 
 	svg {
 		transition: transform 0.2s;
-	}
-
-	${ConceptCard}:hover & svg {
-		transform: translateX(4px);
+		stroke: ${colors.headline};
 	}
 `;
 
 const BackLink = styled(Link)`
-	color: ${colors.primary};
+	color: ${colors.headline};
 	text-decoration: none;
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	font-weight: 500;
 	padding: 8px 16px;
-	border-radius: 8px;
+	border: 2px solid ${colors.secondary};
+	border-radius: 0;
 	transition: all 0.2s;
-	background: ${colors.surfaceLight};
+	background: ${colors.background};
+	box-shadow: 4px 4px 0 ${colors.secondary};
 
 	&:hover {
-		background: ${colors.surface};
-		transform: translateX(-4px);
-		box-shadow: 0 2px 8px ${colors.shadow};
+		box-shadow: 2px 2px 0 ${colors.secondary};
+		transform: translate(2px, 2px);
+	}
+
+	&:active {
+		box-shadow: none;
+		transform: translate(4px, 4px);
 	}
 
 	svg {
-		stroke: ${colors.primary};
+		stroke: ${colors.headline};
 	}
 `;
 

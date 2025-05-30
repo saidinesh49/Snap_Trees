@@ -1,28 +1,28 @@
 export const colors = {
   // Main backgrounds
-  background: '#f0f4f8',      // Cool light blue-gray - easy on eyes
-  surface: '#ffffff',         // Pure white for content
-  surfaceLight: '#f8fafc',    // Subtle blue tint for elevated surfaces
+  background: '#ffffff', // White background for retro theme
+  surface: '#f8f8f8', // Slightly off-white for surfaces
+  surfaceLight: '#eeeeee', // Light gray for elevated surfaces
   
   // Text colors
-  headline: '#1a365d',        // Deep blue - for strong headlines
-  paragraph: '#2d4a6d',       // Softer blue - for readable text
-  textMuted: '#64748b',       // Muted blue-gray
+  headline: '#000000', // Black headlines for retro theme
+  paragraph: '#333333', // Dark gray for paragraph text
+  textMuted: '#666666', // Muted gray text
   
   // Primary colors - Teal represents growth and learning
-  primary: '#0694a2',         // Vibrant teal - main actions
-  primaryHover: '#047481',    // Darker teal
-  primaryMuted: '#a5f3fc',    // Light teal for subtle elements
+  primary: '#ffff00', // Vibrant yellow for primary actions
+  primaryHover: '#cccc00', // Darker yellow for hover
+  primaryMuted: '#ffff99', // Light yellow for subtle elements
   
   // Secondary colors - Complementary to teal
-  secondary: '#7c3aed',       // Purple - for visual hierarchy
-  secondaryHover: '#6d28d9',  // Darker purple
-  secondaryMuted: '#ddd6fe',  // Light purple
+  secondary: '#000000', // Black for secondary actions
+  secondaryHover: '#333333', // Darker black for hover
+  secondaryMuted: '#cccccc', // Light gray for muted secondary elements
   
   // Accent colors - For highlights and emphasis
-  accent: '#0ea5e9',         // Sky blue - for highlights
-  accentHover: '#0284c7',    // Darker sky blue
-  accentMuted: '#bae6fd',    // Light sky blue
+  accent: '#ffff00', // Yellow for accents
+  accentHover: '#cccc00', // Darker yellow for accent hover
+  accentMuted: '#ffff99', // Light yellow for muted accents
   
   // Status colors - Clear and intuitive
   success: '#059669',        // Green - success states
@@ -33,14 +33,14 @@ export const colors = {
   warningHover: '#b45309',
   
   // Borders and shadows - Subtle depth
-  border: '#e2e8f0',         // Light blue-gray border
-  borderLight: '#f1f5f9',    // Very light border
-  shadow: 'rgba(51, 65, 85, 0.08)',
-  shadowHover: 'rgba(51, 65, 85, 0.12)',
+  border: '#000000', // Black border for retro theme
+  borderLight: '#333333', // Dark gray light border
+  shadow: 'rgba(0, 0, 0, 0.2)', // Darker shadow for retro theme
+  shadowHover: 'rgba(0, 0, 0, 0.3)', // Even darker shadow on hover
   
-  // Gradients
+  // Gradients - Keeping some gradient options, though solid colors might be more retro
   gradient: {
-    primary: 'linear-gradient(135deg, #0694a2, #0ea5e9)',
-    secondary: 'linear-gradient(135deg, #7c3aed, #0ea5e9)'
+    primary: 'linear-gradient(135deg, #ffff00, #cccc00)', // Yellow gradient
+    secondary: 'linear-gradient(135deg, #000000, #333333)' // Black/dark gray gradient
   }
 }; 

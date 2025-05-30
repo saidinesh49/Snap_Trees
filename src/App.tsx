@@ -71,29 +71,34 @@ const SelectContainer = styled.div`
 
 	select {
 		padding: 8px 12px;
-		border: 1px solid rgb(157, 204, 251);
-		box-shadow: 0 0 0 2px rgba(135, 192, 239, 0.2);
-		border-radius: 6px;
+		border: 2px solid ${colors.secondary};
+		border-radius: 0;
 		font-size: 14px;
 		min-width: 150px;
-		background: white;
+		background: ${colors.background};
+		color: ${colors.headline};
 		cursor: pointer;
 		transition: all 0.2s;
+		box-shadow: 4px 4px 0 ${colors.secondary};
 
 		&:hover {
-			border-color: #4dabf7;
+			box-shadow: 2px 2px 0 ${colors.secondary};
 		}
 
 		&:focus {
 			outline: none;
-			border-color: #4dabf7;
-			box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2);
+			box-shadow: 2px 2px 0 ${colors.secondary};
+		}
+
+		&:active {
+			box-shadow: none;
+			transform: translate(4px, 4px);
 		}
 	}
 
 	label {
-		color: #495057;
-		font-weight: 500;
+		color: ${colors.headline};
+		font-weight: 600;
 	}
 
 	@media (max-width: 768px) {
@@ -116,8 +121,8 @@ const Title = styled.h1`
 `;
 
 const ConceptLink = styled(Link)`
-	color: #6d5cae;
-	background: rgba(109, 92, 174, 0.1);
+	color: ${colors.headline};
+	background: rgba(0, 0, 0, 0.03);
 	text-decoration: none;
 	display: flex;
 	align-items: center;
@@ -125,21 +130,25 @@ const ConceptLink = styled(Link)`
 	font-size: 14px;
 	font-weight: 500;
 	padding: 8px 16px;
-	border-radius: 6px;
+	border: 2px solid ${colors.secondary};
+	border-radius: 0;
 	transition: all 0.2s;
-	white-space: nowrap;
+	box-shadow: 4px 4px 0 ${colors.secondary};
 
 	&:hover {
-		background: rgba(109, 92, 174, 0.1);
-		transform: translateX(4px);
+		background: rgba(0, 0, 0, 0.05);
+		box-shadow: 2px 2px 0 ${colors.secondary};
+		transform: translate(2px, 2px);
+	}
+
+	&:active {
+		background: rgba(0, 0, 0, 0.08);
+		box-shadow: none;
+		transform: translate(4px, 4px);
 	}
 
 	svg {
-		transition: transform 0.2s;
-	}
-
-	&:hover svg {
-		transform: translateX(4px);
+		stroke: ${colors.headline};
 	}
 
 	@media (max-width: 768px) {
@@ -147,7 +156,6 @@ const ConceptLink = styled(Link)`
 		justify-content: center;
 		padding: 12px;
 		font-size: 16px;
-		background: rgba(109, 92, 174, 0.1);
 	}
 `;
 
@@ -156,9 +164,10 @@ const ControlPanel = styled.div`
 	flex-wrap: wrap;
 	gap: 16px;
 	padding: 20px;
-	background: #ffffff;
-	border-radius: 12px;
-	box-shadow: 0 2px 4px rgba(116, 95, 181, 0.1);
+	background: ${colors.background};
+	border: 2px solid ${colors.secondary};
+	border-radius: 0;
+	box-shadow: 4px 4px 0 ${colors.secondary};
 
 	@media (max-width: 768px) {
 		flex-direction: column;
@@ -181,16 +190,27 @@ const ControlGroup = styled.div`
 
 const Input = styled.input`
 	padding: 8px 12px;
-	border: 2px solid #e8e5f2;
-	border-radius: 6px;
+	border: 2px solid ${colors.secondary};
+	border-radius: 0;
 	font-size: 14px;
-	width: 120px;
+	width: 200px;
 	transition: all 0.2s;
+	background: ${colors.background};
+	color: ${colors.headline};
+	box-shadow: 4px 4px 0 ${colors.secondary};
 
 	&:focus {
 		outline: none;
-		border-color: #6d5cae;
-		box-shadow: 0 0 0 2px rgba(109, 92, 174, 0.2);
+		box-shadow: 2px 2px 0 ${colors.secondary};
+	}
+
+	&:hover {
+		box-shadow: 2px 2px 0 ${colors.secondary};
+	}
+
+	&:active {
+		box-shadow: none;
+		transform: translate(4px, 4px);
 	}
 
 	@media (max-width: 768px) {
@@ -203,51 +223,80 @@ const Input = styled.input`
 interface ButtonProps {
 	variant?: "danger" | "secondary" | "success";
 	disabled?: boolean;
+	active?: boolean;
 }
 
 const Button = styled.button<ButtonProps>`
 	padding: 8px 16px;
-	border: none;
-	border-radius: 6px;
+	border: 2px solid ${colors.secondary};
+	border-radius: 0;
 	font-size: 14px;
-	font-weight: 500;
+	font-weight: 600;
 	cursor: pointer;
-	background: ${(props: ButtonProps) => {
-		switch (props.variant) {
+	background: ${({ variant, disabled, active }: ButtonProps) => {
+		if (disabled) return colors.secondaryMuted;
+		if (active) return colors.surfaceLight;
+		
+		switch (variant) {
 			case "danger":
-				return colors.danger;
-			case "secondary":
-				return colors.secondary;
+				return "rgba(255, 0, 0, 0.1)"; // Subtle red for delete
 			case "success":
-				return colors.success;
+				return "rgba(0, 128, 0, 0.1)"; // Subtle green for search
+			case "secondary":
+				return "rgba(0, 0, 0, 0.05)"; // Very subtle black for undo/redo
 			default:
-				return colors.primary;
+				return "rgba(255, 255, 0, 0.1)"; // Subtle yellow for insert
 		}
 	}};
-	color: ${colors.background};
+	color: ${({ variant, disabled }: ButtonProps) => {
+		if (disabled) return colors.textMuted;
+		
+		switch (variant) {
+			case "danger":
+				return "#cc0000"; // Darker red for delete
+			case "success":
+				return "#006400"; // Darker green for search
+			case "secondary":
+				return colors.headline; // Black for undo/redo
+			default:
+				return colors.headline; // Black for insert
+		}
+	}};
 	transition: all 0.2s;
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	box-shadow: 4px 4px 0 ${colors.secondary};
 
 	&:hover {
-		background: ${(props: ButtonProps) => {
-			switch (props.variant) {
+		background: ${({ variant, disabled }: ButtonProps) => {
+			if (disabled) return colors.secondaryMuted;
+			
+			switch (variant) {
 				case "danger":
-					return "#d45151";
-				case "secondary":
-					return colors.secondaryHover;
+					return "rgba(255, 0, 0, 0.15)"; // Slightly more red
 				case "success":
-					return "#7193bc";
+					return "rgba(0, 128, 0, 0.15)"; // Slightly more green
+				case "secondary":
+					return "rgba(0, 0, 0, 0.08)"; // Slightly more black
 				default:
-					return colors.primaryHover;
+					return "rgba(255, 255, 0, 0.15)"; // Slightly more yellow
 			}
 		}};
+		box-shadow: 2px 2px 0 ${colors.secondary};
+	}
+
+	&:active {
+		box-shadow: none;
+		transform: translate(4px, 4px);
 	}
 
 	&:disabled {
-		background: #e8e5f2;
+		background: ${colors.secondaryMuted};
+		border-color: ${colors.secondaryMuted};
+		color: ${colors.textMuted};
 		cursor: not-allowed;
+		box-shadow: none;
 	}
 
 	@media (max-width: 768px) {

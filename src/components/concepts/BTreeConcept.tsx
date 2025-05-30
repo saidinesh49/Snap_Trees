@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { colors } from "../../styles/colors";
 import MadeWithLove from "components/common/MadeWithLove";
+import { BackButton, PrerequisiteLink as SharedPrerequisiteLink, ReferenceLink as SharedReferenceLink } from "./shared/ConceptStyles";
 
 // Reuse styled components from previous concepts
 const Container = styled.div`
@@ -21,28 +22,7 @@ const Header = styled.header`
 	align-items: center;
 `;
 
-const BackLink = styled(Link)`
-	color: ${colors.primary};
-	text-decoration: none;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-weight: 500;
-	padding: 8px 16px;
-	border-radius: 8px;
-	transition: all 0.2s;
-	background: ${colors.surfaceLight};
-
-	&:hover {
-		background: ${colors.surface};
-		transform: translateX(-4px);
-		box-shadow: 0 2px 8px ${colors.shadow};
-	}
-
-	svg {
-		stroke: ${colors.primary};
-	}
-`;
+const BackLink = styled(BackButton)``;
 
 const Content = styled.div`
 	background: white;
@@ -92,14 +72,7 @@ const CodeBlock = styled.pre`
 	font-family: "Courier New", Courier, monospace;
 `;
 
-const ReferenceLink = styled.a`
-	color: ${colors.primary};
-	text-decoration: none;
-	font-weight: 500;
-	&:hover {
-		text-decoration: underline;
-	}
-`;
+const ReferenceLink = styled(SharedReferenceLink)``;
 
 const Prerequisite = styled.div`
 	margin-bottom: 32px;
@@ -113,21 +86,7 @@ const PrerequisiteText = styled.strong`
 	color: #1a1a1a;
 `;
 
-const PrerequisiteLink = styled(Link)`
-	color: ${colors.primary};
-	text-decoration: none;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-weight: 500;
-	padding: 8px 16px;
-	border-radius: 8px;
-	background: ${colors.surfaceLight};
-
-	svg {
-		stroke: ${colors.primary};
-	}
-`;
+const PrerequisiteLink = styled(SharedPrerequisiteLink)``;
 
 export const BTreeConcept: React.FC = () => {
 	return (
@@ -191,13 +150,18 @@ export const BTreeConcept: React.FC = () => {
 					</Text>
 					<Text>
 						For more information, refer to this{" "}
-						<ReferenceLink
+						<a
 							href="https://en.wikipedia.org/wiki/B-tree"
 							target="_blank"
 							rel="noopener noreferrer"
+							style={{
+								color: colors.headline,
+								textDecoration: 'underline',
+								fontWeight: 500
+							}}
 						>
 							Wikipedia article
-						</ReferenceLink>
+						</a>
 						.
 					</Text>
 				</Section>
@@ -333,28 +297,46 @@ interface BTreeNode {
 					<SubTitle>More References</SubTitle>
 					<List>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://en.wikipedia.org/wiki/B-tree"
 								target="_blank"
+								rel="noopener noreferrer"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								Wikipedia: B-Tree
-							</ReferenceLink>
+							</a>
 						</li>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://www.geeksforgeeks.org/b-tree-set-1-introduction-2/"
 								target="_blank"
+								rel="noopener noreferrer"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								GeeksforGeeks: B-Tree
-							</ReferenceLink>
+							</a>
 						</li>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://www.tutorialspoint.com/data_structures_algorithms/b_trees.htm"
 								target="_blank"
+								rel="noopener noreferrer"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								TutorialsPoint: B-Tree
-							</ReferenceLink>
+							</a>
 						</li>
 					</List>
 				</Section>

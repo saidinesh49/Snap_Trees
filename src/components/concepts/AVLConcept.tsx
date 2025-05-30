@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { colors } from "../../styles/colors"; //ok
 import MadeWithLove from "../common/MadeWithLove";
+import { BackButton, PrerequisiteLink as SharedPrerequisiteLink, ReferenceLink as SharedReferenceLink } from "./shared/ConceptStyles";
 
 const Container = styled.div`
 	padding: 40px 20px;
@@ -20,28 +21,7 @@ const Header = styled.header`
 	align-items: center;
 `;
 
-const BackLink = styled(Link)`
-	color: ${colors.primary};
-	text-decoration: none;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-weight: 500;
-	padding: 8px 16px;
-	border-radius: 8px;
-	transition: all 0.2s;
-	background: ${colors.surfaceLight};
-
-	&:hover {
-		background: ${colors.surface};
-		transform: translateX(-4px);
-		box-shadow: 0 2px 8px ${colors.shadow};
-	}
-
-	svg {
-		stroke: ${colors.primary};
-	}
-`;
+const BackLink = styled(BackButton)``;
 
 const Content = styled.div`
 	background: white;
@@ -91,14 +71,7 @@ const CodeBlock = styled.pre`
 	font-family: "Courier New", Courier, monospace;
 `;
 
-const ReferenceLink = styled.a`
-	color: ${colors.primary};
-	text-decoration: none;
-	font-weight: 500;
-	&:hover {
-		text-decoration: underline;
-	}
-`;
+const ReferenceLink = styled(SharedReferenceLink)``;
 
 const Image = styled.img`
 	width: 100%;
@@ -154,21 +127,7 @@ const PrerequisiteText = styled.strong`
 	color: #1a1a1a;
 `;
 
-const PrerequisiteLink = styled(Link)`
-	color: ${colors.primary};
-	text-decoration: none;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-weight: 500;
-	padding: 8px 16px;
-	border-radius: 8px;
-	background: ${colors.surfaceLight};
-
-	svg {
-		stroke: ${colors.primary};
-	}
-`;
+const PrerequisiteLink = styled(SharedPrerequisiteLink)``;
 
 const AVLConcept: React.FC = () => {
 	const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
@@ -634,28 +593,43 @@ const AVLConcept: React.FC = () => {
 					<SubTitle>More References</SubTitle>
 					<List>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://en.wikipedia.org/wiki/AVL_tree"
 								target="_blank"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								Wikipedia: AVL Tree
-							</ReferenceLink>
+							</a>
 						</li>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://www.geeksforgeeks.org/avl-tree-set-1-insertion/"
 								target="_blank"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								GeeksforGeeks: AVL Tree Insertion
-							</ReferenceLink>
+							</a>
 						</li>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://www.programiz.com/dsa/avl-tree"
 								target="_blank"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								Programiz: AVL Tree
-							</ReferenceLink>
+							</a>
 						</li>
 					</List>
 				</Section>

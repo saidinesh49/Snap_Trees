@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { colors } from "../../styles/colors";
 import MadeWithLove from "../common/MadeWithLove";
+import { BackButton, ReferenceLink as SharedReferenceLink } from "./shared/ConceptStyles";
 
 const Container = styled.div`
 	padding: 40px 20px;
@@ -20,28 +21,7 @@ const Header = styled.header`
 	align-items: center;
 `;
 
-const BackLink = styled(Link)`
-	color: ${colors.primary};
-	text-decoration: none;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-weight: 500;
-	padding: 8px 16px;
-	border-radius: 8px;
-	transition: all 0.2s;
-	background: ${colors.surfaceLight};
-
-	&:hover {
-		background: ${colors.surface};
-		transform: translateX(-4px);
-		box-shadow: 0 2px 8px ${colors.shadow};
-	}
-
-	svg {
-		stroke: ${colors.primary};
-	}
-`;
+const BackLink = styled(BackButton)``;
 
 const Content = styled.div`
 	background: white;
@@ -91,26 +71,18 @@ const CodeBlock = styled.pre`
 	font-family: "Courier New", Courier, monospace;
 `;
 
-const ReferenceLink = styled.a`
-	color: ${colors.primary};
-	text-decoration: none;
-	font-weight: 500;
-	&:hover {
-		text-decoration: underline;
-	}
-`;
+const ReferenceLink = styled(SharedReferenceLink)``;
 
 const Prerequisite = styled.div`
 	margin-bottom: 32px;
-	font-size: 18px;
-	color: ${colors.paragraph};
+`;
+
+const PrerequisiteText = styled.strong`
 	display: flex;
 	align-items: center;
 	gap: 8px;
-
-	svg {
-		fill: ${colors.paragraph};
-	}
+	font-size: 18px;
+	color: #1a1a1a;
 `;
 
 const BinaryTreeConcept: React.FC = () => {
@@ -140,7 +112,9 @@ const BinaryTreeConcept: React.FC = () => {
 			<Content>
 				<Section>
 					<Prerequisite>
-						<strong>Prerequisite:</strong> None
+						<PrerequisiteText>
+							<strong>Prerequisite:</strong> None
+						</PrerequisiteText>
 					</Prerequisite>
 					<SubTitle>What is a Binary Tree?</SubTitle>
 					<Text>
@@ -231,28 +205,46 @@ const BinaryTreeConcept: React.FC = () => {
 					<SubTitle>References</SubTitle>
 					<List>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://en.wikipedia.org/wiki/Binary_tree"
 								target="_blank"
+								rel="noopener noreferrer"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								Wikipedia: Binary Tree
-							</ReferenceLink>
+							</a>
 						</li>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://www.geeksforgeeks.org/binary-tree-data-structure/"
 								target="_blank"
+								rel="noopener noreferrer"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								GeeksforGeeks: Binary Tree
-							</ReferenceLink>
+							</a>
 						</li>
 						<li>
-							<ReferenceLink
+							<a
 								href="https://www.tutorialspoint.com/data_structures_algorithms/binary_tree_algorithms.htm"
 								target="_blank"
+								rel="noopener noreferrer"
+								style={{
+									color: colors.headline,
+									textDecoration: 'underline',
+									fontWeight: 500
+								}}
 							>
 								TutorialsPoint: Binary Tree
-							</ReferenceLink>
+							</a>
 						</li>
 					</List>
 				</Section>
